@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Accueil — AST Basket." />
-    <title>AST Basket | Accueil</title>
+    <meta name="description" content="Événements — AST Basket." />
+    <title>AST Basket | Événements</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="home-page">
+  <body class="inner-page">
     <a class="skip-link" href="#main-content">Aller au contenu</a>
     <header class="site-header">
       <div class="utility-bar">
@@ -18,7 +18,6 @@
       <div class="navigation-wrap">
         <a class="brand" href="index.html" aria-label="AST Basket — accueil">
           <img class="club-logo" src="Image_AST/AST_logo_L.jpeg" alt="A.S. Tournefeuille Basket" width="250" height="87" />
-
         </a>
 
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
@@ -27,7 +26,7 @@
         </button>
 
         <nav id="primary-navigation" class="primary-navigation" aria-label="Navigation principale">
-          <a class="active" aria-current="page" href="index.html">Accueil</a>
+          <a href="index.html">Accueil</a>
           <details class="club-dropdown">
             <summary>Le Club <span aria-hidden="true">▾</span></summary>
             <div class="club-dropdown-links">
@@ -39,7 +38,7 @@
           <a href="calendrier.html">Calendrier / Résultats</a>
           <a href="inscription.html">Inscription</a>
           <a href="actualites.html">Actualités</a>
-          <a href="evenements.html">Événements</a>
+          <a class="active" aria-current="page" href="evenements.html">Événements</a>
           <a href="partenaires.html">Partenaires</a>
           <a href="boutique.html">Boutique</a>
           <a href="contact.html">Contact</a>
@@ -47,34 +46,11 @@
       </div>
     </header>
     <main id="main-content">
-      <section id="accueil" class="hero" aria-labelledby="hero-title">
-        <div class="hero-content">
-          <p class="eyebrow">Bienvenue à l'AST Basket</p>
-          <h1 id="hero-title">Une équipe.<br /><em>Une passion.</em></h1>
-          <p class="hero-text">Vivre le basket ensemble, sur le terrain comme en dehors.</p>
-          <a class="button button-light" href="club.html">Découvrir le club <span aria-hidden="true">→</span></a>
-        </div>
-        <div class="hero-number" aria-hidden="true">24</div>
-        <div class="hero-court" aria-hidden="true">
-          <span class="court-line court-line--vertical"></span>
-          <span class="court-circle"></span>
-          <span class="court-arc"></span>
-        </div>
-      </section>
-      <section class="practical-info" aria-labelledby="practical-title">
-        <div class="practical-card">
-          <h2 id="practical-title">Infos pratiques</h2>
-          <address class="practical-details">
-            <div>
-              <h3>Adresse du club</h3>
-              <p>12 Rue Pierre Labitrie<br />31170 TOURNEFEUILLE</p>
-            </div>
-            <div>
-              <h3>Email</h3>
-              <a href="mailto:contact@tournefeuillebasket.fr">contact@tournefeuillebasket.fr</a>
-            </div>
-          </address>
-        </div>
+      <section id="evenements" class="simple-page section-padding" aria-labelledby="page-title">
+        <p class="eyebrow">AST Basket</p>
+        <h1 id="page-title">Les <em>Événements.</em></h1>
+        <p class="page-description">Les prochains rendez-vous du club seront annoncés ici.</p>
+
       </section>
     </main>
     <footer class="site-footer">

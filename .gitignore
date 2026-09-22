@@ -1,0 +1,9 @@
+# Temporary calendar import file; keep the generated snapshot versioned.
+data/calendar-data.js.tmp
+
+# Local dependencies, logs and operating-system metadata.
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
