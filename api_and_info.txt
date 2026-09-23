@@ -1,0 +1,61 @@
+FFBB API — Notes projet
+========================
+
+Site FFBB :
+https://competitions.ffbb.com
+
+API utilisée par le site :
+https://api.ffbb.com
+
+Club :
+AS TOURNEFEUILLE
+
+Identifiant FFBB :
+OCC0031039
+
+
+DONNÉES POTENTIELLEMENT RÉCUPÉRABLES
+-------------------------------------
+
+- Informations du club
+- Équipes du club
+- Compétitions
+- Poules
+- Calendrier des rencontres
+- Prochains matchs
+- Matchs passés
+- Date et heure des rencontres
+- Équipe domicile / extérieur
+- Adversaires
+- Scores / résultats
+- Salles
+- Classements
+- Saisons
+- Certaines données liées aux matchs live
+
+
+COLLECTIONS FFBB REPÉRÉES
+-------------------------
+
+- ffbbserver_organismes
+- ffbbserver_competitions
+- ffbbserver_poules
+- ffbbserver_engagements
+- ffbbserver_rencontres
+- ffbbserver_salles
+- ffbbserver_saisons
+
+
+UTILISATION PRÉVUE SUR LE SITE
+-------------------------------
+
+Objectif :
+Récupérer automatiquement les informations sportives de
+l'AS Tournefeuille depuis les données FFBB.
+
+Priorité :
+1. Équipes
+2. Prochains matchs
+3. Résultats
+4. Classements
+5. Informations sur les compétitions
