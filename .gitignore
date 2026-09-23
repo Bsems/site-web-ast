@@ -1,7 +1,7 @@
-# Temporary calendar import file; keep the generated snapshot versioned.
+# Fichier temporaire de l’import ; conserver l’instantané final du calendrier dans Git.
 data/calendar-data.js.tmp
 
-# Local dependencies, logs and operating-system metadata.
+# Dépendances locales, journaux et métadonnées du système à exclure de Git.
 node_modules/
 *.log
 .DS_Store

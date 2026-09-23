@@ -1,13 +1,18 @@
+// Isoler les variables du calendrier pour éviter les collisions avec les autres scripts.
 (function () {
   'use strict';
+  // Durée d’un jour en millisecondes ; les calculs calendaires utilisent UTC.
   const DAY = 86400000;
+  // Décaler une date ISO de plusieurs jours, sans dépendre des changements d’heure locaux.
   function shift(date, days) {
     return new Date(Date.parse(date + 'T12:00:00Z') + days * DAY).toISOString().slice(0, 10);
   }
+  // Ramener chaque date au lundi de sa semaine (dimanche vaut 0 en JavaScript).
   function monday(date) {
     const day = new Date(date + 'T12:00:00Z').getUTCDay();
     return shift(date, -((day + 6) % 7));
   }
+  // Regrouper les rencontres datées par lundi, puis trier par horaire et équipe.
   function groupWeeks(matches) {
     const groups = new Map();
     for (const match of matches) {
@@ -19,35 +24,42 @@
     for (const list of groups.values()) list.sort((a, b) => a.date.localeCompare(b.date) || a.team.localeCompare(b.team));
     return groups;
   }
+  // Afficher un score uniquement pour un match joué ; conserver les véritables scores nuls.
   function result(match, today) {
     if (match.played && match.homeScore !== null && match.awayScore !== null) return `${match.homeScore} – ${match.awayScore}`;
     if (!match.played && match.date?.slice(0, 10) === today) return 'Aujourd’hui';
     return match.date && match.date.slice(0, 10) > today ? 'À venir' : 'Score non publié';
   }
+  // Exposer les fonctions aux tests Node ; arrêter ensuite si aucun navigateur n’est présent.
   if (typeof module !== 'undefined') module.exports = { shift, monday, groupWeeks, result };
   if (typeof document === 'undefined') return;
   const root = document.querySelector('#weekly-calendar');
   if (!root) return;
+  // Lire l’instantané local chargé par la page avant ce script.
   const data = window.AST_CALENDAR;
   if (!data || !Array.isArray(data.matches)) {
     root.textContent = 'Le calendrier est indisponible. Consultez les rencontres sur la FFBB via le lien ci-dessous.';
     return;
   }
+  // Déterminer la semaine courante selon la date en France métropolitaine.
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const currentWeek = monday(today);
   const groups = groupWeeks(data.matches);
+  // Inclure toutes les semaines entre les matchs et la semaine courante, même sans rencontre.
   const boundaries = [...groups.keys(), currentWeek].sort();
   const weeks = [];
   for (let date = boundaries[0]; date <= boundaries.at(-1); date = shift(date, 7)) weeks.push(date);
   let selected = weeks.indexOf(currentWeek);
   const format = (date, options) => new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', ...options }).format(new Date(date + 'T12:00:00Z'));
   const weekLabel = week => `Du ${format(week, { day: 'numeric', month: 'long' })} au ${format(shift(week, 6), { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  // Créer les éléments avec textContent : les données sont du texte, jamais du HTML exécuté.
   function node(tag, className, text) {
     const element = document.createElement(tag);
     if (className) element.className = className;
     if (text !== undefined) element.textContent = text;
     return element;
   }
+  // Construire les commandes accessibles de sélection de la semaine.
   const controls = node('div', 'calendar-controls');
   const previous = node('button', 'calendar-arrow', '←');
   previous.type = 'button'; previous.setAttribute('aria-label', 'Semaine précédente');
@@ -63,11 +75,13 @@
   const chooser = node('div', 'calendar-chooser'); chooser.append(label, select);
   const current = node('button', 'calendar-today', 'Cette semaine'); current.type = 'button';
   controls.append(previous, chooser, next, current);
+  // Préparer le titre, le statut annoncé et le conteneur des rencontres.
   const heading = node('h2', 'calendar-week-title'); heading.id = 'calendar-week-title';
   const summary = node('p', 'calendar-summary'); summary.setAttribute('role', 'status');
   const list = node('div', 'calendar-days'); list.setAttribute('aria-labelledby', heading.id);
   const updated = node('p', 'calendar-updated', 'Données FFBB mises à jour le ' + new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'long', timeStyle: 'short' }).format(new Date(data.updatedAt)) + '.');
   root.replaceChildren(controls, heading, summary, list, updated);
+  // Construire une fiche : équipe AST, horaire local FFBB, adversaire, score et lien source.
   function matchCard(match) {
     const card = node('article', 'fixture');
     const meta = node('div', 'fixture-meta');
@@ -83,6 +97,7 @@
     card.append(meta, versus, detail);
     return card;
   }
+  // Actualiser la semaine sélectionnée, les limites des boutons et les rencontres par jour.
   function render() {
     const week = weeks[selected];
     select.value = String(selected); previous.disabled = selected === 0; next.disabled = selected === weeks.length - 1;
@@ -104,11 +119,13 @@
       dayList.append(matchCard(match));
     }
   }
+  // Chaque commande modifie l’index sélectionné puis reconstruit la liste visible.
   previous.addEventListener('click', () => { if (selected > 0) { selected--; render(); } });
   next.addEventListener('click', () => { if (selected < weeks.length - 1) { selected++; render(); } });
   current.addEventListener('click', () => { selected = weeks.indexOf(currentWeek); render(); });
   select.addEventListener('change', () => { selected = Number(select.value); render(); });
   render();
+  // Présenter séparément les rencontres sans date, exclues du regroupement hebdomadaire.
   const undated = data.matches.filter(match => !match.date);
   if (undated.length) {
     const pending = node('section', 'calendar-pending');
