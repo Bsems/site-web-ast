@@ -129,21 +129,7 @@ dans `Image_AST/`, en conservant leur arborescence et la casse des noms.
 
 Les scripts d’import sont exécutés localement ; ils ne nécessitent aucun serveur
 Node.js sur l’hébergement. Le dépôt Git conserve les sources et l’instantané FFBB.
-Un envoi Git ne garantit une mise en ligne que si un déploiement est configuré
-sur l’hébergement ; ce projet ne contient pas de pipeline de déploiement.
 
-## État actuel et points à compléter
-
-- Les pages Actualités, Événements et Boutique attendent leur contenu définitif.
-- L’inscription renvoie vers Contact ; il n’y a pas de formulaire ni de gestion
-  des adhésions. Le contact utilise l’application email du visiteur.
-- L’École de basket conserve une présentation générale. Aucune équipe U11
-  n’est encore renseignée dans la liste des équipes.
-- Les partenaires sont affichés sous forme de noms et leurs liens pointent
-  vers la page partenaires du site actuel.
-- La dernière étape de l’historique fourni est la saison 2014–2015.
-- Les résultats nécessitent un nouvel import pour rester à jour. Le format des
-  pages publiques FFBB peut évoluer et demander une adaptation du lecteur.
 
 ## Sources du contenu
 
