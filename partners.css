@@ -1,0 +1,28 @@
+/* Cartes propres à la page Partenaires. */
+.partners-help { margin: 2rem 0 1rem; color: #505969; line-height: 1.6; }
+.partners-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+.partner-flip-card { min-width: 0; perspective: 1200px; }
+.partner-flip-inner { display: grid; height: 100%; transform-style: preserve-3d; transition: transform .5s ease; }
+.partner-flip-card.is-flipped .partner-flip-inner { transform: rotateY(180deg); }
+.partner-face { grid-area: 1 / 1; min-width: 0; min-height: 21rem; padding: 1.5rem; border: 1px solid var(--line); border-radius: .75rem; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.partner-front { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; width: 100%; font: inherit; color: var(--ink); background: #fff; cursor: pointer; }
+.partner-front:hover { border-color: var(--blue); background: #f7f9ff; }
+.partner-logo { display: block; width: 100%; height: 8rem; object-fit: contain; }
+.partner-logo[hidden] { display: none; }
+.partner-name { max-width: 100%; font-size: 1.1rem; font-weight: 800; line-height: 1.4; text-align: center; overflow-wrap: anywhere; }
+.partner-hint { font-size: .8rem; color: var(--blue); line-height: 1.5; }
+.partner-back { position: relative; display: flex; flex-direction: column; gap: 1rem; transform: rotateY(180deg); background: var(--deep-blue); color: #fff; }
+.partner-back-title { margin: 0; font-size: 1.1rem; line-height: 1.4; overflow-wrap: anywhere; }
+.partner-links { display: grid; gap: .5rem; }
+.partner-link { display: block; padding: .7rem .85rem; border: 1px solid #ffffff70; border-radius: .35rem; font-size: .9rem; font-weight: 700; line-height: 1.4; }
+.partner-link:hover { background: #ffffff20; }
+.partner-return { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.partner-back-title, .partner-links { position: relative; z-index: 1; pointer-events: none; }
+.partner-link { pointer-events: auto; }
+.partner-empty { margin: 0; font-size: .95rem; line-height: 1.6; }
+.partner-retry { padding: .5rem .8rem; border: 1px solid var(--blue); border-radius: .3rem; background: #fff; color: var(--blue); font: inherit; cursor: pointer; }
+.partner-front:focus-visible, .partner-retry:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+.partner-back :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@media (max-width: 900px) { .partners-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .partners-cards { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .partner-flip-inner { transition: none; } }

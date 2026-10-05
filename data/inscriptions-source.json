@@ -1,0 +1,22 @@
+{
+  "source": "https://tournefeuillebasket.fr/inscriptions/",
+  "retrievedAt": "2026-10-01",
+  "links": {
+    "process": "https://drive.google.com/file/d/1nYwbsho4NEbsT5IJjTZbpuTPKbxIeBbi/view?usp=sharing",
+    "tax": "https://drive.google.com/file/d/1zMEpfD_VUn2VWa22E7qEHsCB3_S0IdcK/view",
+    "fees": "https://drive.google.com/file/d/1uAqKaKgC-2sY0FYENYhAOk-uAdvLbUkb/view?usp=sharing",
+    "form": "https://drive.google.com/file/d/1E4mvUMHo0DYevfdcElNxzoFunV65l4OO/view?usp=sharing",
+    "school": "http://tournefeuillebasket.fr/ecole-de-basket/",
+    "gym": "gymnases.html",
+    "documents": "#documents",
+    "permanences": "#permanences"
+  },
+  "contactEmail": "inscriptions@tournefeuillebasket.fr",
+  "paymentMethods": [
+    "virement bancaire",
+    "chèque",
+    "ANCV (avec frais)",
+    "Pass Sport"
+  ],
+  "permanences": []
+}

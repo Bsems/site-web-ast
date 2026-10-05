@@ -1,0 +1,34 @@
+.school-page h1 { margin: 1.5rem 0; font-size: clamp(3.6rem, 9vw, 8rem); line-height: .95; letter-spacing: -.065em; text-transform: uppercase; }
+.school-page h1 em { font-family: Georgia, serif; font-weight: 400; text-transform: none; }
+.school-page h2 { font-size: clamp(2.3rem, 5vw, 5rem); line-height: 1.05; letter-spacing: -.05em; }
+.school-page p, .school-page li { line-height: 1.75; }
+.school-page section[id] { scroll-margin-top: 2rem; }
+.school-intro { background: var(--blue); color: #fff; }
+.school-intro .eyebrow { margin-top: 3rem; }
+.school-intro .text-link:hover { color: #fff; }
+.school-lead { font-size: 1.2rem; }
+.school-sections { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+.school-sections a { padding: .75rem 1rem; border: 1px solid #ffffff80; font-weight: 700; }
+.school-sections a:hover { background: #fff; color: var(--blue); }
+.school-heading { display: flex; align-items: center; justify-content: space-between; gap: 2rem; margin-bottom: 2.5rem; }
+.school-logo { width: clamp(90px, 16vw, 170px); height: auto; flex-shrink: 0; }
+.school-micro-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 3rem; align-items: start; }
+.school-benefits { padding-left: 1.25rem; }
+.school-benefits li { margin-bottom: 1rem; }
+.school-practical { padding: 2rem; background: #fff; border-left: 4px solid var(--blue); }
+.school-practical h3 { margin-top: 0; }
+.school-practical a { color: var(--blue); text-decoration: underline; text-underline-offset: .2em; overflow-wrap: anywhere; }
+.school-mini { background: #fff; border-block: 1px solid var(--line); }
+.school-ages { display: grid; grid-template-columns: repeat(4, 1fr); list-style: none; padding: 0; margin: 2rem 0 0; gap: 1rem; }
+.school-ages li { display: flex; flex-direction: column; padding: 1.5rem; background: #edf3ff; }
+.school-ages strong { font-size: 1.8rem; color: var(--blue); }
+.school-ages small { color: #50596a; }
+.school-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; margin-top: 3rem; }
+.school-team { background: #fff; border: 1px solid var(--line); overflow: hidden; }
+.school-team-photo { display: block; width: 100%; aspect-ratio: 5 / 4; object-fit: contain; background: #edf3ff; }
+.school-team-copy { padding: 1.5rem 2rem; }
+.school-team-copy h3 { margin: 0; font-size: 1.6rem; }
+.school-team-copy p { margin-bottom: 0; color: #50596a; }
+.school-join { background: var(--blue); color: #fff; }
+@media (max-width: 900px) { .school-micro-grid { grid-template-columns: 1fr; gap: 1.5rem; } .school-ages { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .school-team-grid { grid-template-columns: 1fr; } .school-heading { align-items: flex-start; gap: 1rem; } .school-heading h2 { font-size: 2.3rem; } .school-ages li { padding: 1rem; } .school-practical { padding: 1.5rem; } }

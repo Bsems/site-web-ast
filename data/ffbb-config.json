@@ -1,0 +1,33 @@
+{
+  "baseUrl": "https://ffbb-api.desimone.fr",
+  "documentationUrl": "https://ffbb-api.desimone.fr/docs",
+  "club": {
+    "code": "OCC0031039",
+    "url": "https://competitions.ffbb.com/ligues/occ/comites/0031/clubs/occ0031039",
+    "id": 12343
+  },
+  "displayTeams": [
+    { "engagementId": "200000005336923", "name": "RF U13", "category": "young" },
+    { "engagementId": "200000005335026", "name": "NF U15 Élite", "category": "young" },
+    { "engagementId": "200000005338304", "name": "RF U15", "category": "young" },
+    { "engagementId": "200000005335063", "name": "NF U18 Élite", "category": "young" },
+    { "engagementId": "200000005338389", "name": "RF U18", "category": "young" },
+    { "engagementId": "200000005334817", "name": "NF2", "category": "senior" },
+    { "engagementId": "200000005336628", "name": "RF2", "category": "senior" },
+    { "engagementId": "200000005338119", "name": "DF3", "category": "senior" },
+    { "engagementId": "200000005337216", "name": "RM3", "category": "senior" },
+    { "engagementId": "200000005338098", "name": "DM3", "category": "senior" }
+  ],
+  "teamLabels": {
+    "200000005334817": "NF2",
+    "200000005335063": "NF U18 Élite",
+    "200000005335026": "NF U15 Élite",
+    "200000005336628": "RF2",
+    "200000005338389": "RF U18",
+    "200000005338304": "RF U15",
+    "200000005336923": "RF U13",
+    "200000005338119": "DF3",
+    "200000005337216": "RM3",
+    "200000005338098": "DM3"
+  }
+}

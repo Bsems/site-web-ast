@@ -191,12 +191,17 @@ a:focus-visible, button:focus-visible { outline: 2px solid #78a7ff; outline-offs
 
 /* équipes regroupées par catégorie d’âge et liens vers leurs compétitions. */
 .team-categories { align-items: stretch; }
+.school-category { position: relative; }
+.school-category-link::after { content: ""; position: absolute; inset: 0; }
+.school-category:hover, .school-category:focus-within { box-shadow: inset 0 0 0 2px #78a7ff; }
+.school-category-link:focus-visible { outline: 2px solid #78a7ff; outline-offset: 6px; }
+.school-category-link span { color: #78a7ff; }
 .team-categories .team-number { margin-bottom: 2rem; }
 .teams .team-categories h2 { margin: 0 0 .8rem; font-size: clamp(1.5rem, 2.5vw, 2.2rem); line-height: 1.1; letter-spacing: -.04em; }
 .team-categories .team-description { margin: 0; color: #b9bdc5; line-height: 1.6; }
 .category-team-list { list-style: none; padding: 0; margin: 1.75rem 0 0; border-top: 1px solid #363941; }
 .category-team-list li { border-bottom: 1px solid #363941; }
-.category-team-list a { display: grid; gap: .4rem; padding: 1rem 0; line-height: 1.45; }
+.category-team-list a, .category-team-entry { display: grid; gap: .4rem; padding: 1rem 0; line-height: 1.45; }
 .category-team-list strong { color: #78a7ff; font-size: 1rem; }
 .category-team-list span { color: #b9bdc5; font-size: .85rem; }
 .category-team-list a:hover strong, .category-team-list a:focus-visible strong { color: #fff; }

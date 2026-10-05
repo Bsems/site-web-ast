@@ -25,7 +25,7 @@ FFBB et exécuter les tests. Le projet n’utilise aucune dépendance npm.
 | Nos gymnases | `gymnases.html` | Quatre gymnases, adresses, transports et itinéraires. |
 | Les équipes | `equipes.html` | École de basket, Jeunes (U11 à U18) et Séniors ; liens vers les poules FFBB. |
 | Calendrier / Résultats | `calendrier.html` | Rencontres de toutes les équipes regroupées par semaine, puis par jour et horaire. |
-| Inscription | `inscription.html` | Présentation de la saison et accès à la page Contact. |
+| Inscription | `inscription.html` | Démarches, documents, cotisation et permanences. |
 | Actualités | `actualites.html` | Emplacements en attente de publications. |
 | Événements | `evenements.html` | Page d’attente. |
 | Partenaires | `partenaires.html` | Liste des partenaires et accès au contact. |
@@ -45,10 +45,13 @@ site-web-ast/
 ├── script.js                 Menus de navigation
 ├── calendar.js               Regroupement et affichage hebdomadaire des matchs
 ├── data/
-│   └── calendar-data.js      Dernier instantané FFBB, versionné avec le site
+│   ├── ffbb-config.json      API, club et libellés des engagements
+│   ├── calendar.json         Données sportives de référence
+│   └── calendar-data.js      Copie générée pour l’ouverture locale
 ├── scripts/
-│   ├── update-calendar.mjs   Import des rencontres depuis les pages publiques FFBB
-│   ├── ffbb-source.mjs       Lecture des données structurées des pages FFBB
+│   ├── update-calendar.mjs   Import des rencontres et scores via l’API
+│   ├── ffbb-client.mjs       Client REST et normalisation des réponses
+│   ├── export-calendar.mjs   Génération de la copie JS et de la page équipes
 │   └── calendar.test.mjs     Tests du calendrier et de l’import
 ├── Image_AST/                Logos fournis pour le projet
 ├── Texte/
@@ -80,27 +83,32 @@ des semaines et le bouton « Cette semaine » permettent de parcourir les rencon
 Toutes les équipes sont mélangées et les matchs sont triés par jour et horaire.
 
 Chaque rencontre indique la catégorie AST, les adversaires, le lieu de jeu
-(domicile ou extérieur), l’horaire, le score publié et un lien vers la fiche FFBB.
+(domicile ou extérieur), la salle, l’horaire, le score et un lien vers les rencontres FFBB.
 Les rencontres sans date sont affichées séparément. Les scores sont présentés
 dans l’ordre **équipe à domicile – équipe à l’extérieur**.
 
-Les données constituent un **instantané**, sans actualisation automatique.
+Les données sont récupérées via l’API publique intermédiaire
+[FFBB Data Client](https://ffbb-api.desimone.fr/docs). Les équipes sont découvertes
+automatiquement, coupes comprises. Les scores proviennent des détails des poules
+et sont associés aux rencontres par identifiant. Aucune page HTML FFBB n’est extraite.
 Pour importer les derniers horaires et résultats depuis la racine du projet :
 
 ```sh
 node scripts/update-calendar.mjs
-node --test scripts/calendar.test.mjs
+node --test scripts/calendar.test.mjs scripts/ffbb-api.test.mjs
 ```
 
-Publier ensuite le fichier `data/calendar-data.js` actualisé. La page indique
-la date du dernier import. La procédure complète et les limites du mécanisme
-sont décrites dans [CALENDRIER.md](CALENDRIER.md).
+Publier ensuite `data/calendar.json`, sa copie générée `data/calendar-data.js`
+et `equipes.html`. La page indique la date du dernier import et signale les données
+de plus de deux jours. La procédure complète est décrite dans [CALENDRIER.md](CALENDRIER.md).
 
-La liste des équipes importées provient des liens de poules dans `equipes.html`.
-Au changement de saison ou de phase, vérifier les liens sur la
-[fiche FFBB du club](https://competitions.ffbb.com/ligues/occ/comites/0031/clubs/occ0031039)
-et les actualiser avant l’import. Les équipes ou compétitions absentes de cette
-liste ne sont pas incluses dans le calendrier.
+`data/ffbb-config.json` est la configuration de référence. Les listes de la page
+équipes sont générées depuis `displayTeams`, avec les liens issus des données API ;
+ne pas les modifier à la main. Chaque équipe figure une seule fois, sans liste de
+compétitions. Les engagements en coupe restent disponibles dans le calendrier.
+Les classements disponibles sont conservés dans le JSON pour une future présentation.
+Un workflow GitHub Actions est préparé pour deux imports quotidiens. Il reste à
+publier et à raccorder au déploiement du site ; voir `BACKLOG.txt`.
 
 ## Vérifier les modifications
 
@@ -108,15 +116,15 @@ liste ne sont pas incluses dans le calendrier.
 node --check script.js
 node --check calendar.js
 node --check scripts/update-calendar.mjs
-node --check scripts/ffbb-source.mjs
-node --test scripts/calendar.test.mjs
+node --check scripts/ffbb-client.mjs
+node --test scripts/calendar.test.mjs scripts/ffbb-api.test.mjs
 git diff --check
 ```
 
 Les tests couvrent les semaines à cheval sur deux années, le tri de plusieurs
-équipes, les statuts et scores, la lecture des références FFBB et la cohérence
-de l’instantané. Certains contrôles portent sur les dix équipes et une rencontre
-connue de septembre 2026 : adapter ces cas lors d’un changement de saison.
+équipes, les statuts et scores, les erreurs API, les imports incomplets et la
+cohérence entre le JSON et sa copie locale. Un score historique sert de contrôle
+d’orientation domicile/extérieur : adapter ce cas lors d’un changement de saison.
 
 Dans le navigateur, vérifier aussi la navigation, le menu « Le club », l’affichage
 sur mobile, les semaines sans match, les scores et les liens de chaque rubrique.
@@ -138,3 +146,59 @@ Node.js sur l’hébergement. Le dépôt Git conserve les sources et l’instant
   avec adresses et transports confirmés par le responsable du projet.
 - Équipes, poules, calendriers et scores : [FFBB Compétitions](https://competitions.ffbb.com/ligues/occ/comites/0031/clubs/occ0031039).
 - Partenaires : [site actuel du club](https://tournefeuillebasket.fr/nos-partenaires/).
+
+## Logos et liens des partenaires
+
+La page `partenaires.html` affiche les 22 partenaires de `data/partners.json`.
+Chaque carte présente le logo, puis les liens au verso au clic, au toucher ou
+avec Entrée/Espace. Un clic sur le verso en dehors des liens ramène au logo,
+sans texte de retour affiché. Le retour reste accessible au clavier avec Tab
+puis Entrée/Espace, ou avec Échap.
+Un lien choisi ouvre un nouvel onglet ; retourner la carte conserve la page.
+
+Pour modifier un partenaire, éditer `name`, `image` et `links` dans le JSON.
+Chaque lien contient `label`, `url` (HTTPS) et `enabled` (affiché si true).
+Les champs `sources` et `reviewNote` conservent les références de recherche et
+les réserves ; ils ne sont pas affichés sur les cartes. Les liens Renault restent
+désactivés jusqu’à confirmation du garage. Les liens non trouvés sont omis.
+
+Après chaque modification, exécuter :
+
+```sh
+node scripts/export-partners.mjs
+```
+
+Cette commande vérifie les images et les liens, puis régénère
+`data/partners-data.js` pour l’ouverture directe en file://. Sur un serveur web,
+la page charge directement le JSON. Publier aussi `partners.js`, `partners.css`,
+les deux fichiers de données et le dossier `Partenaires/` en respectant la casse.
+Les liens et informations structurées sont maintenus dans le JSON.
+
+## Textes et données structurées
+
+Les `.txt` sont réservés aux textes à afficher. Les `.json` sont la source de
+référence pour les liens et les autres informations structurées du projet.
+Cette règle est également consignée dans `AGENTS.md`.
+
+Pour les inscriptions :
+
+- `Texte/Inscriptions_AST_source.txt` contient les textes éditoriaux à reporter dans la page.
+- `data/inscriptions-source.json` contient les liens, le contact, les moyens de règlement et les permanences.
+- Après modification du JSON, lancer `node scripts/export-inscriptions.mjs`.
+  Le script actualise les éléments repérés par `data-registration-link` et
+  `data-registration-value` dans `inscription.html`, sans modifier les textes éditoriaux.
+- Publier le HTML régénéré, `inscription.css` et `permanences.js`. Le calendrier
+  utilise JavaScript et fonctionne sans serveur ; les autres informations restent
+  lisibles sans JavaScript. Les modifications du TXT sont reportées manuellement.
+- Ne pas ajouter d’années au contenu affiché des inscriptions.
+
+Le calendrier affiche le mois courant et entoure les dates de `permanences` dans
+le JSON. Cette liste est vide tant qu’aucune nouvelle permanence n’est annoncée.
+Chaque entrée comporte `date` (format YYYY-MM-DD), `start` et `end` (HH:MM), ainsi
+que `location`. L’année est conservée dans les données pour identifier une date
+sans ambiguïté, mais n’est pas affichée. Après modification, régénérer la page
+avec `node scripts/export-inscriptions.mjs`.
+
+Vérification : `node --test scripts/permanences.test.mjs`.
+L’interface de gestion des permanences sera définie plus tard : voir `BACKLOG.txt`,
+fichier TXT de suivi interne demandé pour les travaux reportés.

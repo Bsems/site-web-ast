@@ -1,0 +1,148 @@
+{
+  "sourceUrl": "https://tournefeuillebasket.fr/ecole-de-basket/",
+  "retrievedAt": "2026-10-02",
+  "links": {
+    "teams": "equipes.html",
+    "registration": "inscription.html",
+    "gym": "gymnases.html"
+  },
+  "micro": {
+    "ageMin": 3,
+    "ageMax": 5,
+    "durationHours": 1,
+    "day": "dimanche matin",
+    "location": "gymnase du Moulin à Vent",
+    "trialSessions": 3,
+    "parentRequired": true,
+    "email": "inscriptions@tournefeuillebasket.fr"
+  },
+  "mini": {
+    "membersApprox": 160000,
+    "sourceCategoryCount": 3,
+    "categories": [
+      {
+        "name": "U5",
+        "ages": null,
+        "formerName": null
+      },
+      {
+        "name": "U7",
+        "ages": [
+          6
+        ],
+        "formerName": "Babybasketteurs"
+      },
+      {
+        "name": "U9",
+        "ages": [
+          7,
+          8
+        ],
+        "formerName": "Minipoussins"
+      },
+      {
+        "name": "U11",
+        "ages": [
+          9,
+          10
+        ],
+        "formerName": "Poussins"
+      }
+    ]
+  },
+  "images": [
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2024/01/micro_basket.png",
+      "src": "Image_AST/ecole-de-basket/micro_basket.png"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/10/LogoMiniBasket-FFBB.officiel.png",
+      "src": "Image_AST/ecole-de-basket/LogoMiniBasket-FFBB.officiel.png"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/12/U5_flou-1024x819.jpg",
+      "src": "Image_AST/ecole-de-basket/U5_flou-1024x819.jpg"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/10/photo-a-venir.png",
+      "src": "Image_AST/ecole-de-basket/photo-a-venir.png"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/10/photo-a-venir-300x300-1.png",
+      "src": "Image_AST/ecole-de-basket/photo-a-venir-300x300-1.png"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/10/319644602_840994123873710_4165538755877548275_n.jpg",
+      "src": null,
+      "downloadError": "HTTP 404"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/12/U7_flou-1024x819.jpg",
+      "src": "Image_AST/ecole-de-basket/U7_flou-1024x819.jpg"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/12/U9_1_flou-1024x819.jpg",
+      "src": "Image_AST/ecole-de-basket/U9_1_flou-1024x819.jpg"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/12/U9_2_flou-1024x819.jpg",
+      "src": "Image_AST/ecole-de-basket/U9_2_flou-1024x819.jpg"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/12/U11_1_flou-1024x683.jpg",
+      "src": "Image_AST/ecole-de-basket/U11_1_flou-1024x683.jpg"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/12/U11_2_flou-1024x819.jpg",
+      "src": "Image_AST/ecole-de-basket/U11_2_flou-1024x819.jpg"
+    },
+    {
+      "sourceUrl": "http://tournefeuillebasket.fr/wp-content/uploads/2023/12/U11F_flou-1024x683.jpg",
+      "src": "Image_AST/ecole-de-basket/U11F_flou-1024x683.jpg"
+    }
+  ],
+  "teams": [
+    {
+      "name": "Équipe U5",
+      "coach": "Samuel Lebrun",
+      "role": "Responsable école de basket",
+      "image": "Image_AST/ecole-de-basket/U5_flou-1024x819.jpg"
+    },
+    {
+      "name": "Équipe U7",
+      "coach": "Samuel Lebrun",
+      "role": "Responsable école de basket",
+      "image": "Image_AST/ecole-de-basket/U7_flou-1024x819.jpg"
+    },
+    {
+      "name": "Équipe U9 – 1",
+      "coach": "Samuel Lebrun",
+      "role": "Responsable école de basket",
+      "image": "Image_AST/ecole-de-basket/U9_1_flou-1024x819.jpg"
+    },
+    {
+      "name": "Équipe U9 – 2",
+      "coach": "Samuel Lebrun",
+      "role": "Responsable école de basket",
+      "image": "Image_AST/ecole-de-basket/U9_2_flou-1024x819.jpg"
+    },
+    {
+      "name": "Équipe U11M – 1",
+      "coach": "Reda Boulahyane",
+      "role": "Coach Principal",
+      "image": "Image_AST/ecole-de-basket/U11_1_flou-1024x683.jpg"
+    },
+    {
+      "name": "Équipe U11M – 2",
+      "coach": "Salomé Sylvestre",
+      "role": "Coach principal",
+      "image": "Image_AST/ecole-de-basket/U11_2_flou-1024x819.jpg"
+    },
+    {
+      "name": "Équipe U11F",
+      "coach": "Samuel Lebrun",
+      "role": "Responsable école de basket",
+      "image": "Image_AST/ecole-de-basket/U11F_flou-1024x683.jpg"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+BACKLOG — PROJET AST
+
+À FAIRE
+
+[ ] Publication automatique des données FFBB
+    Publier et activer le workflow d’actualisation préparé dans le dépôt.
+    Raccorder les mises à jour des données au déploiement de l’hébergement retenu.
+
+[ ] Présentation des classements
+    Les classements sont désormais récupérés par l’API et stockés dans le JSON.
+    Définir leur présentation sur le site.
+
+[ ] Gestion des permanences du club
+    Définir comment les responsables pourront ajouter une permanence au calendrier.
+    Prévoir la sélection d’une date, des horaires et du lieu.
+    Permettre de modifier, annuler ou supprimer une permanence.
+    Enregistrer les informations dans le JSON et publier le calendrier actualisé.
+    Les dates renseignées doivent apparaître entourées dans le calendrier public.
+    Décider qui pourra accéder à cet outil et comment protéger cet accès.
+
+EN PLACE
+
+[x] Calendrier mensuel sur la page inscription, avec navigation entre les mois.
+[x] Suppression des deux anciennes permanences ; aucune nouvelle date annoncée.
+[x] Affichage des dates entourées et des détails à partir des données JSON.
+
+Ce fichier sert au suivi interne du projet et n’est pas un texte destiné au site.

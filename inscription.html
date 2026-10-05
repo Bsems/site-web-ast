@@ -4,9 +4,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Inscription — AST Basket." />
+    <meta name="description" content="Inscrivez-vous à l’AST Basket : demande de licence, dossier d’inscription, tarifs, documents et permanences." />
     <title>AST Basket | Inscription</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="inscription.css" />
   </head>
   <body class="inner-page">
     <!-- Accès direct au contenu pour la navigation au clavier. -->
@@ -40,6 +41,7 @@
             <div class="club-dropdown-links">
               <a href="club.html">Présentation du club</a>
               <a href="gymnases.html">Nos gymnases</a>
+              <a href="basket-sante.html">Basket Santé</a>
             </div>
           </details>
           <a href="equipes.html">Les équipes</a>
@@ -57,9 +59,70 @@
     <main id="main-content">
       <!-- Section de contenu reliée à son titre accessible : cta-title. -->
       <section id="inscription" class="cta section-padding" aria-labelledby="cta-title">
-        <p class="eyebrow">Saison 2026 — 2027</p>
+        <p class="eyebrow">Inscription à l’AST Basket</p>
         <h1 id="cta-title">Rejoignez<br /><em>l'aventure.</em></h1>
-        <a class="button button-light" href="contact.html">S'inscrire à l'AST Basket <span aria-hidden="true">→</span></a>
+        <p class="page-description">Votre inscription se déroule en trois étapes : la pré-inscription auprès de la FFBB, le dossier club et la validation de votre licence.</p>
+        <a class="button button-light" data-registration-link="documents" href="#documents">Les documents d’inscription <span aria-hidden="true">↓</span></a>
+      </section>
+      <section class="registration-content section-padding" aria-labelledby="steps-title">
+        <p class="eyebrow">Les démarches</p>
+        <h2 id="steps-title">Votre inscription en 3 étapes</h2>
+        <ol class="registration-steps">
+          <li>
+            <h3>Demander votre e-licence</h3>
+            <p>À votre demande ou à celle des entraîneurs de la saison précédente, le club vous envoie un e-mail via e-licence. Suivez le lien, renseignez vos informations et validez votre demande auprès de la Fédération Française de Basket-Ball (FFBB) pour effectuer votre pré-inscription.</p>
+            <p>Vous n’avez pas reçu le lien ? Écrivez à <a data-registration-link="contact" href="mailto:inscriptions@tournefeuillebasket.fr"><span data-registration-value="contact">inscriptions@tournefeuillebasket.fr</span></a> en précisant vos nom, prénom, date de naissance et catégorie.</p>
+          </li>
+          <li>
+            <h3>Remettre votre dossier et régler la cotisation</h3>
+            <p>Complétez la <a data-registration-link="form" target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1E4mvUMHo0DYevfdcElNxzoFunV65l4OO/view?usp=sharing">fiche licencié-e</a>, puis transmettez votre dossier au club :</p>
+            <ul>
+              <li>Par e-mail à <a data-registration-link="contact" href="mailto:inscriptions@tournefeuillebasket.fr"><span data-registration-value="contact">inscriptions@tournefeuillebasket.fr</span></a>, avec vos nom, prénom, date de naissance et catégorie, en réglant par virement bancaire. Le RIB figure dans le <a data-registration-link="fees" target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1uAqKaKgC-2sY0FYENYhAOk-uAdvLbUkb/view?usp=sharing">document des tarifs</a>.</li>
+              <li>Lors des <a data-registration-link="permanences" href="#permanences">permanences du club</a>.</li>
+            </ul>
+            <p><strong>Moyens de règlement :</strong> <span data-registration-value="payments">virement bancaire, chèque, ANCV (avec frais), Pass Sport</span>.</p>
+          </li>
+          <li>
+            <h3>Validation de votre licence</h3>
+            <p>Une fois le formulaire club et le paiement de la cotisation reçus, le club vérifie les informations saisies lors de votre pré-inscription en ligne et valide votre demande de licence.</p>
+          </li>
+        </ol>
+      </section>
+      <section id="documents" class="registration-content registration-documents section-padding" aria-labelledby="documents-title">
+        <p class="eyebrow">Les ressources utiles</p>
+        <h2 id="documents-title">Documents d’inscription</h2>
+        <ul class="registration-document-list">
+          <li><a data-registration-link="process" target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1nYwbsho4NEbsT5IJjTZbpuTPKbxIeBbi/view?usp=sharing">Présentation du processus de demande de licence <span aria-hidden="true">↗</span></a></li>
+          <li><a data-registration-link="tax" target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1zMEpfD_VUn2VWa22E7qEHsCB3_S0IdcK/view">Principe de la défiscalisation <span aria-hidden="true">↗</span></a></li>
+          <li><a data-registration-link="fees" target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1uAqKaKgC-2sY0FYENYhAOk-uAdvLbUkb/view?usp=sharing">Tarifs et RIB <span aria-hidden="true">↗</span></a></li>
+          <li><a data-registration-link="form" target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1E4mvUMHo0DYevfdcElNxzoFunV65l4OO/view?usp=sharing">Fiche licencié-e — formulaire d’inscription club <span aria-hidden="true">↗</span></a></li>
+        </ul>
+        <p>Pour l'Ecole de basket, consultez la <a data-registration-link="school" target="_blank" rel="noopener noreferrer" href="http://tournefeuillebasket.fr/ecole-de-basket/">page École de basket</a>.</p>
+        <p>Pour le planning des entraînements, <a data-registration-link="contact" href="mailto:inscriptions@tournefeuillebasket.fr">contactez le secrétariat</a>.</p>
+      </section>
+      <section id="permanences" class="registration-content practical-info" aria-labelledby="permanences-title">
+        <div class="practical-card">
+          <h2 id="permanences-title">Les permanences</h2>
+          <p>Retrouvez les permanences du club dans le calendrier. Les dates entourées indiquent les jours de permanence.</p>
+          <div id="permanences-calendar" class="permanences-calendar" hidden>
+            <div class="permanences-controls">
+              <button type="button" data-month-offset="-1" aria-label="Mois précédent">←</button>
+              <h3 id="permanences-month" aria-live="polite"></h3>
+              <button type="button" data-month-offset="1" aria-label="Mois suivant">→</button>
+              <button type="button" id="permanences-today">Ce mois-ci</button>
+            </div>
+            <table class="permanences-table" aria-labelledby="permanences-month">
+              <thead><tr><th scope="col" abbr="Lundi">Lun.</th><th scope="col" abbr="Mardi">Mar.</th><th scope="col" abbr="Mercredi">Mer.</th><th scope="col" abbr="Jeudi">Jeu.</th><th scope="col" abbr="Vendredi">Ven.</th><th scope="col" abbr="Samedi">Sam.</th><th scope="col" abbr="Dimanche">Dim.</th></tr></thead>
+              <tbody id="permanences-days"></tbody>
+            </table>
+            <p class="permanences-legend"><span aria-hidden="true">○</span> Jour de permanence</p>
+            <div id="permanences-details" aria-live="polite"></div>
+          </div>
+          <noscript><p>Activez JavaScript pour consulter le calendrier des permanences.</p></noscript>
+          <script id="permanences-data" type="application/json">[]</script>
+          <p><a data-registration-link="gym" href="gymnases.html">Consulter les informations d’accès au gymnase</a></p>
+          <p>Une question sur votre inscription ? <a data-registration-link="contact" href="mailto:inscriptions@tournefeuillebasket.fr">Écrivez au secrétariat</a>.</p>
+        </div>
       </section>
     </main>
     <!-- Pied de page commun : liens utiles, réseaux sociaux et copyright. -->
@@ -74,5 +137,6 @@
     </footer>
     <!-- Interactions communes chargées après le HTML pour accéder aux éléments du menu. -->
     <script src="script.js"></script>
+    <script src="permanences.js"></script>
   </body>
 </html>

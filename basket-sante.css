@@ -1,0 +1,25 @@
+.health-page h1 { margin: 0; font-size: clamp(3.6rem, 9vw, 8rem); line-height: 1; letter-spacing: -.065em; text-transform: uppercase; }
+.health-page h1 em { font-family: Georgia, serif; font-weight: 400; text-transform: none; }
+.health-page h2 { font-size: clamp(2rem, 4.5vw, 4.2rem); line-height: 1.08; letter-spacing: -.045em; }
+.health-page p, .health-page li { line-height: 1.75; }
+.health-intro { background: #edf3ff; }
+.health-intro-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 3rem; align-items: start; margin-top: 3rem; }
+.health-lead { font-size: 1.25rem; }
+.health-lead p { margin-top: 0; }
+.health-session { padding: 2rem; background: #fff; border-left: 4px solid var(--blue); }
+.health-session h2 { font-size: 1.5rem; letter-spacing: -.02em; }
+.health-session a { color: var(--blue); text-decoration: underline; text-underline-offset: .2em; overflow-wrap: anywhere; }
+.health-contact { display: block; margin-top: 1rem; }
+.health-section > p, .health-section > ul { max-width: 65rem; }
+.health-labels { padding: 1.5rem 2rem; margin-top: 2rem; border: 1px solid var(--line); }
+.health-labels p { white-space: pre-line; }
+.health-page figure { margin: 2.5rem 0 0; }
+.health-page figure img { display: block; width: 100%; height: auto; max-width: 1100px; margin-inline: auto; }
+.health-page figcaption { margin-top: 1rem; font-size: .85rem; }
+.health-objectives { background: #fff; border-block: 1px solid var(--line); }
+.health-objectives li { margin-block: 1rem; padding-left: .5rem; }
+.health-videos { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+.health-videos a { padding: 2rem; background: var(--ink); color: #fff; font-weight: 700; line-height: 1.6; }
+.health-videos a:hover { background: var(--blue); }
+.health-flyer { background: var(--blue); color: #fff; }
+@media (max-width: 720px) { .health-intro-grid, .health-videos { grid-template-columns: 1fr; gap: 1.5rem; } .health-session { padding: 1.5rem; } }

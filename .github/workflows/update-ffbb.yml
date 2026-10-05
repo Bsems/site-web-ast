@@ -1,0 +1,29 @@
+name: Actualiser les données FFBB
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7,19 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: update-ffbb
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/update-calendar.mjs
+      - run: node --test scripts/calendar.test.mjs scripts/ffbb-api.test.mjs
+      - name: Enregistrer les données actualisées
+        run: |
+          git add data/calendar.json data/calendar-data.js equipes.html
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Actualiser les rencontres et résultats FFBB"
+          git push

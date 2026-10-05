@@ -1,0 +1,36 @@
+{
+  "sourceUrl": "https://tournefeuillebasket.fr/basket-sante/",
+  "retrievedAt": "2026-10-02",
+  "contactEmail": "contact@tournefeuillebasket.fr",
+  "schedule": {
+    "day": "Lundi",
+    "start": "20h15",
+    "end": "21h45",
+    "location": "Gymnase du Château à Tournefeuille",
+    "url": "gymnases.html"
+  },
+  "images": [
+    {
+      "src": "Image_AST/basket-sante/flyer-bs-2026-2027.jpg",
+      "sourceUrl": "https://tournefeuillebasket.fr/wp-content/uploads/2026/09/flyer-bs-2026-2027.jpg",
+      "alt": "Flyer Basket Santé de l’AS Tournefeuille Basket pour la saison 2026–2027",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "src": "Image_AST/basket-sante/label-resolutions.jpg",
+      "sourceUrl": "https://tournefeuillebasket.fr/wp-content/uploads/2024/02/2023-08-10-5-VxE-BS-AS-TOURNEFEUILLE-BASKET-Depliant-Label-Resolutions_page-0002.jpg",
+      "alt": "Dépliant de labellisation Basket Santé Résolutions de l’AS Tournefeuille Basket",
+      "width": 1754,
+      "height": 1241
+    }
+  ],
+  "videos": [
+    {
+      "url": "https://www.youtube.com/watch?v=ne8c0zPRMzU"
+    },
+    {
+      "url": "http://www.ffbb.com/sites/default/files/BasketSante-nv3-720P04.mp4?fsdkjhfd"
+    }
+  ]
+}

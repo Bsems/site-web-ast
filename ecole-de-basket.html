@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+  <!-- Métadonnées de la page et feuille de styles commune au site. -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Le micro-basket et le mini-basket à l’AST : découvrir le basket, les équipes U5 à U11 et les informations pratiques." />
+    <title>AST Basket | École de basket</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="ecole-de-basket.css" />
+  </head>
+  <body class="inner-page">
+    <!-- Accès direct au contenu pour la navigation au clavier. -->
+    <a class="skip-link" href="#main-content">Aller au contenu</a>
+    <!-- En-tête commun : identité du club, contact et navigation. -->
+    <header class="site-header">
+      <div class="utility-bar">
+        <p>Le site officiel de l'AST Basket</p>
+        <a href="contact.html">Nous contacter <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <div class="navigation-wrap">
+        <a class="brand" href="index.html" aria-label="AST Basket — accueil">
+          <img class="club-logo" src="Image_AST/AST_logo_L.jpeg" alt="A.S. Tournefeuille Basket" width="250" height="87" />
+        </a>
+
+        <!-- Menu des petits écrans : script.js synchronise son ouverture et aria-expanded. -->
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
+          <span class="sr-only">Ouvrir le menu</span>
+          <span></span><span></span><span></span>
+        </button>
+
+        <!-- Navigation principale ; aria-current identifie la page consultée. -->
+
+        <nav id="primary-navigation" class="primary-navigation" aria-label="Navigation principale">
+          <a href="index.html">Accueil</a>
+          <!-- Sous-menu natif du club, utilisable aussi sans JavaScript. -->
+          <details class="club-dropdown">
+            <summary>Le Club <span aria-hidden="true">▾</span></summary>
+            <div class="club-dropdown-links">
+              <a href="club.html">Présentation du club</a>
+              <a href="gymnases.html">Nos gymnases</a>
+              <a href="basket-sante.html">Basket Santé</a>
+            </div>
+          </details>
+          <a class="active" href="equipes.html">Les équipes</a>
+          <a href="calendrier.html">Calendrier / Résultats</a>
+          <a href="inscription.html">Inscription</a>
+          <a href="actualites.html">Actualités</a>
+          <a href="evenements.html">Événements</a>
+          <a href="partenaires.html">Partenaires</a>
+          <a href="boutique.html">Boutique</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
+    <!-- Contenu propre à cette page, cible du lien d’évitement. -->
+    <main id="main-content" class="school-page">
+<!-- SCHOOL:START -->
+      <section class="school-intro section-padding" aria-labelledby="school-page-title">
+        <a class="text-link" href="equipes.html">← Les équipes</a>
+        <p class="eyebrow">Découvrir · Apprendre · S’épanouir</p>
+        <h1 id="school-page-title">L’école<br /><em>de basket.</em></h1>
+        <p class="school-lead">Les premiers dribbles, le plaisir de jouer ensemble.</p>
+        <nav class="school-sections" aria-label="Les rubriques de l’école de basket"><a href="#micro-basket">Micro-basket</a><a href="#mini-basket">Mini-basket</a><a href="#school-teams">Nos équipes</a></nav>
+      </section>
+      <section id="micro-basket" class="school-section section-padding" aria-labelledby="micro-title">
+        <div class="school-heading"><div><p class="eyebrow">De 3 à 5 ans</p><h2 id="micro-title">Le micro-<em>basket.</em></h2></div><img class="school-logo" src="Image_AST/ecole-de-basket/micro_basket.png" alt="Logo Micro Basket" loading="lazy" decoding="async" /></div>
+        <div class="school-micro-grid"><div><h3>Le Micro Basket, c’est :</h3><ul class="school-benefits"><li>une pratique d’éveil aux possibilités de la position verticale</li><li>un outil de construction et de développement des compétences psychomotrices et relationnelles des plus jeunes</li><li>Un temps d’activité pour les petits et de pause pour les adultes, et inversement…</li><li>Une façon originale et détournée d’amener de nouveaux adultes au basket et dans un club</li><li>un programme conçu par la Fédération Française de BasketBall</li></ul></div>
+          <aside class="school-practical" aria-labelledby="school-practical-title"><h3 id="school-practical-title">Pour les premiers pas</h3><p><strong>1 h le dimanche matin</strong><br />Au gymnase du Moulin à Vent</p><p>3 séances d’essai avant de valider la licence. Présence d’un parent durant la séance.</p><a href="gymnases.html">Voir les gymnases →</a><p>Inscriptions :<br /><a href="mailto:inscriptions@tournefeuillebasket.fr">inscriptions@tournefeuillebasket.fr</a></p></aside></div>
+      </section>
+      <section id="mini-basket" class="school-section school-mini section-padding" aria-labelledby="mini-title">
+        <div class="school-heading"><div><p class="eyebrow">Le plaisir du jeu</p><h2 id="mini-title">Le mini-<em>basket.</em></h2></div><img class="school-logo" src="Image_AST/ecole-de-basket/LogoMiniBasket-FFBB.officiel.png" alt="Logo MiniBasket FFBB" loading="lazy" decoding="async" /></div>
+        <p>Inventé en 1950 par René Lavergne (professeur d’Education Physique et Sportive), le MiniBasket initie les jeunes de 6 à 12 ans à la vie sportive en général, et au basket en particulier.</p><p>Le MiniBasket se pratique dans un esprit de loyauté et de camaraderie. Le matériel est adapté aux enfants qui jouent avec des ballons de petite taille (taille 3 et 5) et sur des paniers ajustables. Le non-contact et la notion de marcher sont les 2 règles principales du MiniBasket.</p>
+        <p>Près de 160 000 licenciés pratiquent le MiniBasket.</p>
+        <ul class="school-ages"><li><strong>U5</strong></li><li><strong>U7</strong><span>6 ans</span><small>Anciennement Babybasketteurs</small></li><li><strong>U9</strong><span>7 et 8 ans</span><small>Anciennement Minipoussins</small></li><li><strong>U11</strong><span>9 et 10 ans</span><small>Anciennement Poussins</small></li></ul>
+      </section>
+      <section id="school-teams" class="school-section section-padding" aria-labelledby="school-teams-title"><p class="eyebrow">Grandir ensemble</p><h2 id="school-teams-title">Nos <em>équipes.</em></h2>
+        <div class="school-team-grid"><article class="school-team"><img class="school-team-photo" src="Image_AST/ecole-de-basket/U5_flou-1024x819.jpg" alt="Équipe U5 de l’AST Basket — photo publiée par le club" loading="lazy" decoding="async" /><div class="school-team-copy"><h3>Équipe U5</h3><p><strong>Samuel Lebrun</strong><br />Responsable école de basket</p></div></article><article class="school-team"><img class="school-team-photo" src="Image_AST/ecole-de-basket/U7_flou-1024x819.jpg" alt="Équipe U7 de l’AST Basket — photo publiée par le club" loading="lazy" decoding="async" /><div class="school-team-copy"><h3>Équipe U7</h3><p><strong>Samuel Lebrun</strong><br />Responsable école de basket</p></div></article><article class="school-team"><img class="school-team-photo" src="Image_AST/ecole-de-basket/U9_1_flou-1024x819.jpg" alt="Équipe U9 – 1 de l’AST Basket — photo publiée par le club" loading="lazy" decoding="async" /><div class="school-team-copy"><h3>Équipe U9 – 1</h3><p><strong>Samuel Lebrun</strong><br />Responsable école de basket</p></div></article><article class="school-team"><img class="school-team-photo" src="Image_AST/ecole-de-basket/U9_2_flou-1024x819.jpg" alt="Équipe U9 – 2 de l’AST Basket — photo publiée par le club" loading="lazy" decoding="async" /><div class="school-team-copy"><h3>Équipe U9 – 2</h3><p><strong>Samuel Lebrun</strong><br />Responsable école de basket</p></div></article><article class="school-team"><img class="school-team-photo" src="Image_AST/ecole-de-basket/U11_1_flou-1024x683.jpg" alt="Équipe U11M – 1 de l’AST Basket — photo publiée par le club" loading="lazy" decoding="async" /><div class="school-team-copy"><h3>Équipe U11M – 1</h3><p><strong>Reda Boulahyane</strong><br />Coach Principal</p></div></article><article class="school-team"><img class="school-team-photo" src="Image_AST/ecole-de-basket/U11_2_flou-1024x819.jpg" alt="Équipe U11M – 2 de l’AST Basket — photo publiée par le club" loading="lazy" decoding="async" /><div class="school-team-copy"><h3>Équipe U11M – 2</h3><p><strong>Salomé Sylvestre</strong><br />Coach principal</p></div></article><article class="school-team"><img class="school-team-photo" src="Image_AST/ecole-de-basket/U11F_flou-1024x683.jpg" alt="Équipe U11F de l’AST Basket — photo publiée par le club" loading="lazy" decoding="async" /><div class="school-team-copy"><h3>Équipe U11F</h3><p><strong>Samuel Lebrun</strong><br />Responsable école de basket</p></div></article></div>
+      </section>
+      <section class="school-join section-padding" aria-labelledby="school-join-title"><h2 id="school-join-title">À vous <em>de jouer.</em></h2><p>Envie de rejoindre l’école de basket ?</p><a class="button button-light" href="inscription.html">Les inscriptions <span aria-hidden="true">→</span></a></section>
+<!-- SCHOOL:END -->
+    </main>
+    <!-- Pied de page commun : liens utiles, réseaux sociaux et copyright. -->
+    <footer class="site-footer">
+      <div class="footer-brand"><img class="club-logo" src="Image_AST/AST_logo_L.jpeg" alt="A.S. Tournefeuille Basket" width="250" height="87" /><p>AST Basket<br /><strong>Jouer ensemble.</strong></p></div>
+            <div class="footer-links"><a href="evenements.html">Événements</a><a href="boutique.html">Boutique</a><a href="contact.html">Contact</a></div>
+      <div class="footer-socials" aria-label="Réseaux sociaux de l'AST Basket">
+        <a href="https://www.facebook.com/465668216798810/" target="_blank" rel="noopener noreferrer" aria-label="Suivre l'AST Basket sur Facebook">f</a>
+        <a href="https://www.instagram.com/ast_basket/" target="_blank" rel="noopener noreferrer" aria-label="Suivre l'AST Basket sur Instagram">◎</a>
+      </div>
+      <p class="copyright">© 2026 AST Basket</p>
+    </footer>
+    <!-- Interactions communes chargées après le HTML pour accéder aux éléments du menu. -->
+    <script src="script.js"></script>
+  </body>
+</html>

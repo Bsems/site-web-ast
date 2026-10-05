@@ -1,5 +1,5 @@
 // Isoler les variables du calendrier pour éviter les collisions avec les autres scripts.
-(function () {
+(async function () {
   'use strict';
   // Durée d’un jour en millisecondes ; les calculs calendaires utilisent UTC.
   const DAY = 86400000;
@@ -26,9 +26,9 @@
   }
   // Afficher un score uniquement pour un match joué ; conserver les véritables scores nuls.
   function result(match, today) {
-    if (match.played && match.homeScore !== null && match.awayScore !== null) return `${match.homeScore} – ${match.awayScore}`;
+    if (match.played && Number.isInteger(match.homeScore) && Number.isInteger(match.awayScore)) return `${match.homeScore} – ${match.awayScore}`;
     if (!match.played && match.date?.slice(0, 10) === today) return 'Aujourd’hui';
-    return match.date && match.date.slice(0, 10) > today ? 'À venir' : 'Score non publié';
+    return match.date && match.date.slice(0, 10) > today ? 'À venir' : 'Score indisponible';
   }
   // Exposer les fonctions aux tests Node ; arrêter ensuite si aucun navigateur n’est présent.
   if (typeof module !== 'undefined') module.exports = { shift, monday, groupWeeks, result };
@@ -36,7 +36,16 @@
   const root = document.querySelector('#weekly-calendar');
   if (!root) return;
   // Lire l’instantané local chargé par la page avant ce script.
-  const data = window.AST_CALENDAR;
+  let data = window.AST_CALENDAR;
+  if (location.protocol !== 'file:') {
+    try {
+      const response = await fetch('data/calendar.json', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+      if (!response.ok) throw new Error('Chargement impossible');
+      const fresh = await response.json();
+      if (!Array.isArray(fresh.matches) || !fresh.updatedAt) throw new Error('Données invalides');
+      data = fresh;
+    } catch { /* Conserver la dernière copie locale disponible. */ }
+  }
   if (!data || !Array.isArray(data.matches)) {
     root.textContent = 'Le calendrier est indisponible. Consultez les rencontres sur la FFBB via le lien ci-dessous.';
     return;
@@ -80,6 +89,7 @@
   const summary = node('p', 'calendar-summary'); summary.setAttribute('role', 'status');
   const list = node('div', 'calendar-days'); list.setAttribute('aria-labelledby', heading.id);
   const updated = node('p', 'calendar-updated', 'Données FFBB mises à jour le ' + new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'long', timeStyle: 'short' }).format(new Date(data.updatedAt)) + '.');
+  if (Date.now() - Date.parse(data.updatedAt) > 48 * 60 * 60 * 1000) updated.append(' Des résultats récents peuvent manquer : la dernière actualisation date de plus de deux jours.');
   root.replaceChildren(controls, heading, summary, list, updated);
   // Construire une fiche : équipe AST, horaire local FFBB, adversaire, score et lien source.
   function matchCard(match) {
@@ -91,9 +101,10 @@
     meta.append(time);
     const versus = node('div', 'fixture-versus');
     versus.append(node('p', match.atHome ? 'fixture-ast' : '', match.home), node('p', 'fixture-score', result(match, today)), node('p', match.atHome ? '' : 'fixture-ast', match.away));
-    const detail = node('a', 'fixture-link', 'Fiche du match ↗');
+    if (match.location) card.append(node('p', 'calendar-summary', match.location));
+    const detail = node('a', 'fixture-link', 'Rencontres sur la FFBB ↗');
     detail.href = match.url; detail.target = '_blank'; detail.rel = 'noopener noreferrer';
-    detail.setAttribute('aria-label', `${match.team} : ${match.home} contre ${match.away}, fiche FFBB (nouvel onglet)`);
+    detail.setAttribute('aria-label', `${match.team} : rencontres FFBB (nouvel onglet)`);
     card.append(meta, versus, detail);
     return card;
   }

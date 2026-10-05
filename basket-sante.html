@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+  <!-- Métadonnées de la page et feuille de styles commune au site. -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Découvrez le Basket Santé à l’AST : une pratique adaptée à chacun, ses objectifs et les séances à Tournefeuille." />
+    <title>AST Basket | Basket Santé</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="basket-sante.css" />
+  </head>
+  <body class="inner-page">
+    <!-- Accès direct au contenu pour la navigation au clavier. -->
+    <a class="skip-link" href="#main-content">Aller au contenu</a>
+    <!-- En-tête commun : identité du club, contact et navigation. -->
+    <header class="site-header">
+      <div class="utility-bar">
+        <p>Le site officiel de l'AST Basket</p>
+        <a href="contact.html">Nous contacter <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <div class="navigation-wrap">
+        <a class="brand" href="index.html" aria-label="AST Basket — accueil">
+          <img class="club-logo" src="Image_AST/AST_logo_L.jpeg" alt="A.S. Tournefeuille Basket" width="250" height="87" />
+        </a>
+
+        <!-- Menu des petits écrans : script.js synchronise son ouverture et aria-expanded. -->
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
+          <span class="sr-only">Ouvrir le menu</span>
+          <span></span><span></span><span></span>
+        </button>
+
+        <!-- Navigation principale ; aria-current identifie la page consultée. -->
+
+        <nav id="primary-navigation" class="primary-navigation" aria-label="Navigation principale">
+          <a href="index.html">Accueil</a>
+          <!-- Sous-menu natif du club, utilisable aussi sans JavaScript. -->
+          <details class="club-dropdown">
+            <summary class="active">Le Club <span aria-hidden="true">▾</span></summary>
+            <div class="club-dropdown-links">
+              <a href="club.html">Présentation du club</a>
+              <a href="gymnases.html">Nos gymnases</a>
+              <a href="basket-sante.html" aria-current="page">Basket Santé</a>
+            </div>
+          </details>
+          <a href="equipes.html">Les équipes</a>
+          <a href="calendrier.html">Calendrier / Résultats</a>
+          <a href="inscription.html">Inscription</a>
+          <a href="actualites.html">Actualités</a>
+          <a href="evenements.html">Événements</a>
+          <a href="partenaires.html">Partenaires</a>
+          <a href="boutique.html">Boutique</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main-content" class="health-page">
+<!-- BASKET-SANTE:START -->
+      <section class="health-intro section-padding" aria-labelledby="health-title">
+        <p class="eyebrow">AST Basket · Une pratique adaptée</p>
+        <h1 id="health-title">Basket <em>Santé.</em></h1>
+        <div class="health-intro-grid"><div class="health-lead"><p>Le BASKET SANTE (nouveau concept de la FFBB) est une forme de basket adaptée à la personne (atteinte de pathologies ou non) dans le but d’améliorer ou de maintenir sa santé.</p></div>
+          <aside class="health-session" aria-label="Informations pratiques"><h2>Les séances</h2><p><strong>Lundi de 20h15 à 21h45</strong></p><p>Gymnase du Château à Tournefeuille</p><a href="gymnases.html">Voir le gymnase →</a><a class="health-contact" href="mailto:contact@tournefeuillebasket.fr">contact@tournefeuillebasket.fr</a></aside></div>
+      </section>
+      <section class="health-section section-padding" aria-labelledby="health-presentation"><p class="eyebrow">Présentation</p><h2 id="health-presentation">Une activité pour <em>chacun.</em></h2><p>Le BASKET SANTE : – un programme fédéral validé et intégré par le CNOSF et le Ministère des Sports, – une approche à la fois préventive, curative, d’accompagnement et sociale de l’activité, – des sessions de plusieurs mois, des actions promotionnelles, identifiées par des labels.</p><div class="health-labels"><h3>La Fédération Française de Basket-Ball a renouvelé deux labellisations :</h3><p>Labellisation Basket Santé Résolutions – 9 saisons
+Labellisation Structure Fédérale Basket Santé – 5 Labels</p></div><figure><a href="Image_AST/basket-sante/label-resolutions.jpg"><img src="Image_AST/basket-sante/label-resolutions.jpg" alt="Dépliant de labellisation Basket Santé Résolutions de l’AS Tournefeuille Basket" width="1754" height="1241" loading="lazy" /></a></figure></section>
+      <section class="health-section health-objectives section-padding" aria-labelledby="health-objectives"><p class="eyebrow">Les objectifs</p><h2 id="health-objectives">Bouger et se sentir <em>bien.</em></h2><h3>Le basket santé a plusieurs objectifs dont :</h3><ul><li>favoriser la pratique régulière d’une activité physique,</li><li>répondre aux objectifs de santé et/ou de bien-être de chacun,</li><li>envisager des prescriptions médicales de l’activité Basket dans le cadre du programme « Basket Santé ».</li></ul><p>Le basket est utilisé comme un outil ou un moyen d’améliorer son état physique, mental et social.</p><p>L’activité permet de découvrir ou de se réapproprier son corps à travers des exercices accessibles et de niveaux de pratique progressifs dans le respect de l’intégrité de chacun.</p><p>Les séances sont composées d’exercices accessibles et de niveaux de pratique progressifs de dextérité, coordination, renforcement musculaire, cardio… et du jeu 3×3 avec des règles adaptées.</p></section>
+      <section class="health-section section-padding" aria-labelledby="health-videos"><h2 id="health-videos">Le Basket Santé <em>en vidéo.</em></h2><p>Vous trouverez ci-dessous des vidéos sur le Basket Santé :</p><div class="health-videos"><a href="https://www.youtube.com/watch?v=ne8c0zPRMzU" target="_blank" rel="noopener noreferrer">NIVEAU 2 : personnes peu mobiles/maladies/pathologies<span aria-hidden="true"> ↗</span><span class="sr-only"> (nouvel onglet)</span></a><a href="http://www.ffbb.com/sites/default/files/BasketSante-nv3-720P04.mp4?fsdkjhfd" target="_blank" rel="noopener noreferrer">NIVEAU 3 : personnes mobiles/sédentaires<span aria-hidden="true"> ↗</span><span class="sr-only"> (nouvel onglet)</span></a></div></section>
+      <section class="health-section health-flyer section-padding" aria-labelledby="health-flyer"><h2 id="health-flyer">Rejoignez <em>les séances.</em></h2><figure><a href="Image_AST/basket-sante/flyer-bs-2026-2027.jpg"><img src="Image_AST/basket-sante/flyer-bs-2026-2027.jpg" alt="Flyer Basket Santé de l’AS Tournefeuille Basket pour la saison 2026–2027" width="1280" height="720" loading="lazy" /></a><figcaption>Cliquez sur le flyer pour l’ouvrir en grand.</figcaption></figure><p>et n’oubliez pas le BASKET C’EST LA SANTE !</p><p>à très vite sur le terrain !</p><a class="button button-light" href="mailto:contact@tournefeuillebasket.fr">Nous contacter →</a></section>
+<!-- BASKET-SANTE:END -->
+    </main>
+    <!-- Pied de page commun : liens utiles, réseaux sociaux et copyright. -->
+    <footer class="site-footer">
+      <div class="footer-brand"><img class="club-logo" src="Image_AST/AST_logo_L.jpeg" alt="A.S. Tournefeuille Basket" width="250" height="87" /><p>AST Basket<br /><strong>Jouer ensemble.</strong></p></div>
+            <div class="footer-links"><a href="evenements.html">Événements</a><a href="boutique.html">Boutique</a><a href="contact.html">Contact</a></div>
+      <div class="footer-socials" aria-label="Réseaux sociaux de l'AST Basket">
+        <a href="https://www.facebook.com/465668216798810/" target="_blank" rel="noopener noreferrer" aria-label="Suivre l'AST Basket sur Facebook">f</a>
+        <a href="https://www.instagram.com/ast_basket/" target="_blank" rel="noopener noreferrer" aria-label="Suivre l'AST Basket sur Instagram">◎</a>
+      </div>
+      <p class="copyright">© 2026 AST Basket</p>
+    </footer>
+    <!-- Interactions communes chargées après le HTML pour accéder aux éléments du menu. -->
+    <script src="script.js"></script>
+  </body>
+</html>

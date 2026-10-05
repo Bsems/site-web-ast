@@ -7,6 +7,7 @@
     <meta name="description" content="Partenaires — AST Basket." />
     <title>AST Basket | Partenaires</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="partners.css" />
   </head>
   <body class="inner-page">
     <!-- Accès direct au contenu pour la navigation au clavier. -->
@@ -40,6 +41,7 @@
             <div class="club-dropdown-links">
               <a href="club.html">Présentation du club</a>
               <a href="gymnases.html">Nos gymnases</a>
+              <a href="basket-sante.html">Basket Santé</a>
             </div>
           </details>
           <a href="equipes.html">Les équipes</a>
@@ -65,28 +67,9 @@
           <p>Entreprises, institutions et acteurs locaux : leur soutien permet au club de faire vivre le basket toute l'année.</p>
         </div>
 
-        <div class="partner-grid" aria-label="Liste des partenaires de l'AST Basket">
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Cuquel<br />Optique</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Piero</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Atalian</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Ville de<br />Tournefeuille</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>iTrust</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Carrefour<br />Market</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Natur’elle<br />beauté</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Fromagerie de<br />Bordeneuve</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Le Trèfle</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Le Local</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Laforêt</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>De la Fève<br />au Palais</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Côté Ferme</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Connivence</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Chaussures<br />du Château</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Bergo</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Amplitudes</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Century 21</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Okkio</span></a>
-          <a class="partner-card" href="https://tournefeuillebasket.fr/nos-partenaires/" target="_blank" rel="noopener noreferrer"><span>Chronodrive</span></a>
-        </div>
+        <p class="partners-help" data-partners-status role="status">Chargement des partenaires…</p>
+        <div class="partners-cards" data-partners-grid aria-label="Liste des partenaires de l’AST Basket"></div>
+        <noscript><p>Activez JavaScript pour consulter les logos et les liens de nos partenaires.</p></noscript>
 
         <div class="partners-footer">
           <p>Envie de soutenir l'AST Basket ?</p>
@@ -106,5 +89,7 @@
     </footer>
     <!-- Interactions communes chargées après le HTML pour accéder aux éléments du menu. -->
     <script src="script.js"></script>
+    <script src="data/partners-data.js"></script>
+    <script src="partners.js"></script>
   </body>
 </html>
