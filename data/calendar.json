@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-05T19:39:08+00:00",
+  "updatedAt": "2026-10-06T22:55:29+00:00",
   "source": "https://competitions.ffbb.com/ligues/occ/comites/0031/clubs/occ0031039",
   "sourceType": "api",
   "api": "https://api.ffbb.app",
@@ -1554,23 +1554,6 @@
       "pouleId": "200000003061178"
     },
     {
-      "id": "200000014785258",
-      "team": "AS TOURNEFEUILLE - 1",
-      "teamId": "200000005382467",
-      "date": "2026-10-10T00:00:00",
-      "home": "AS TOURNEFEUILLE - 1",
-      "away": "RACING PORTET BASKET",
-      "atHome": true,
-      "played": false,
-      "homeScore": null,
-      "awayScore": null,
-      "round": "3",
-      "url": "https://competitions.ffbb.com/ligues/occ/comites/0031/competitions/dxu11/match/200000014785258",
-      "location": "GYMNASE CES P.LABITRIE",
-      "competition": null,
-      "pouleId": "200000003061097"
-    },
-    {
       "id": "200000014785275",
       "team": "AS TOURNEFEUILLE - 2",
       "teamId": "200000005382468",
@@ -1586,6 +1569,23 @@
       "location": "SALLE E. DEWOITINE",
       "competition": null,
       "pouleId": "200000003061105"
+    },
+    {
+      "id": "200000014785258",
+      "team": "AS TOURNEFEUILLE - 1",
+      "teamId": "200000005382467",
+      "date": "2026-10-10T10:00:00",
+      "home": "AS TOURNEFEUILLE - 1",
+      "away": "RACING PORTET BASKET",
+      "atHome": true,
+      "played": false,
+      "homeScore": null,
+      "awayScore": null,
+      "round": "3",
+      "url": "https://competitions.ffbb.com/ligues/occ/comites/0031/competitions/dxu11/match/200000014785258",
+      "location": "GYMNASE COLLEGE LEONARD DE VINCI",
+      "competition": null,
+      "pouleId": "200000003061097"
     },
     {
       "id": "200000014850273",
@@ -1761,7 +1761,7 @@
       "id": "200000014563640",
       "team": "RM3",
       "teamId": "200000005337216",
-      "date": "2026-10-10T20:00:00",
+      "date": "2026-10-10T21:00:00",
       "home": "BASKET CLUB POUYASTRUC - 1",
       "away": "AS TOURNEFEUILLE - 1",
       "atHome": false,
@@ -2331,7 +2331,7 @@
       "awayScore": null,
       "round": "8",
       "url": "https://competitions.ffbb.com/competitions/nfu18-elite-b/match/200000014603135",
-      "location": "SALLE ROGER COUDERC",
+      "location": "GYMNASE DE GUILLEMOT",
       "competition": "NATIONALE FEMININE U18 ELITE GROUPE B",
       "pouleId": "200000003054420"
     },
