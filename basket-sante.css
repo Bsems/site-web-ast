@@ -1,3 +1,8 @@
+/*
+ * Présentation de basket-sante.html, après styles.css.
+ * Les classes health-* sont émises par export-basket-sante.mjs : modifier le
+ * modèle de génération si la structure des sections change. Images non recadrées.
+ */
 .health-page h1 { margin: 0; font-size: clamp(3.6rem, 9vw, 8rem); line-height: 1; letter-spacing: -.065em; text-transform: uppercase; }
 .health-page h1 em { font-family: Georgia, serif; font-weight: 400; text-transform: none; }
 .health-page h2 { font-size: clamp(2rem, 4.5vw, 4.2rem); line-height: 1.08; letter-spacing: -.045em; }

@@ -1,4 +1,8 @@
-/* Cartes propres à la page Partenaires. */
+/*
+ * Styles de partenaires.html, chargés après styles.css.
+ * partners.js pilote is-flipped et l'accessibilité ; ces règles gèrent la rotation.
+ * Les deux faces partagent une cellule de grille pour conserver leur hauteur.
+ */
 .partners-help { margin: 2rem 0 1rem; color: #505969; line-height: 1.6; }
 .partners-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
 .partner-flip-card { min-width: 0; perspective: 1200px; }
@@ -16,6 +20,7 @@
 .partner-links { display: grid; gap: .5rem; }
 .partner-link { display: block; padding: .7rem .85rem; border: 1px solid #ffffff70; border-radius: .35rem; font-size: .9rem; font-weight: 700; line-height: 1.4; }
 .partner-link:hover { background: #ffffff20; }
+/* Le bouton de retour couvre le verso ; les liens restent cliquables au-dessus. */
 .partner-return { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
 .partner-back-title, .partner-links { position: relative; z-index: 1; pointer-events: none; }
 .partner-link { pointer-events: auto; }
@@ -25,4 +30,5 @@
 .partner-back :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 @media (max-width: 900px) { .partners-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .partners-cards { grid-template-columns: minmax(0, 1fr); } }
+/* Respecter la préférence de réduction des animations sans supprimer le changement de face. */
 @media (prefers-reduced-motion: reduce) { .partner-flip-inner { transition: none; } }

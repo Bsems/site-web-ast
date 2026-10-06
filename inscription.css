@@ -1,3 +1,8 @@
+/*
+ * Compléments à styles.css pour inscription.html : étapes numérotées,
+ * documents et calendrier mensuel. Les compteurs CSS portent les numéros ;
+ * permanences.js ajoute has-permanence et aria-current sur les jours concernés.
+ */
 .registration-content h2 { font-size: clamp(1.8rem, 4vw, 3.5rem); line-height: 1.1; letter-spacing: -.045em; }
 .registration-content p, .registration-content li { line-height: 1.75; }
 .registration-content a { color: var(--blue); text-decoration: underline; text-underline-offset: .2em; overflow-wrap: anywhere; }
@@ -19,6 +24,7 @@
   .registration-steps > li { padding: 5rem 1.25rem 1.5rem; }
   .registration-steps > li::before { top: 1.25rem; left: 1.25rem; }
 }
+/* Tableau à sept colonnes : entourer une permanence et distinguer le jour courant. */
 .permanences-calendar { max-width: 46rem; margin-top: 2rem; }
 .permanences-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .permanences-controls h3 { flex: 1; margin: 0; text-align: center; text-transform: capitalize; }

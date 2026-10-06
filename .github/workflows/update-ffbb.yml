@@ -1,10 +1,13 @@
+# Actualiser les données du dépôt ; ce workflow ne déploie pas le site web.
 name: Actualiser les données FFBB
 on:
   workflow_dispatch:
   schedule:
+    # Horaires UTC, indépendants des changements d'heure français.
     - cron: '0 7,19 * * *'
 permissions:
   contents: write
+# Sérialiser les imports pour éviter deux écritures simultanées par ce workflow.
 concurrency:
   group: update-ffbb
   cancel-in-progress: false
@@ -17,8 +20,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-ffbb.in
+      - run: python -m pip install -r requirements-ffbb.in
+      # Tester l'adaptateur sans réseau, puis contrôler l'instantané réellement importé.
+      - run: python -m unittest discover -s scripts -p "test_*.py"
       - run: node scripts/update-calendar.mjs
-      - run: node --test scripts/calendar.test.mjs scripts/ffbb-api.test.mjs
+      - run: node --test scripts/calendar.test.mjs scripts/permanences.test.mjs
+      # Versionner seulement les trois sorties ; un push refusé n'est jamais forcé.
       - name: Enregistrer les données actualisées
         run: |
           git add data/calendar.json data/calendar-data.js equipes.html

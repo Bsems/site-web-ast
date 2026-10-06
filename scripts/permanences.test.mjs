@@ -1,3 +1,8 @@
+/**
+ * Tests hors réseau du calendrier d'inscription et de son export embarqué.
+ * Vérifier séparément calcul mensuel et cohérence JSON/HTML ; aucune interaction
+ * navigateur ni récupération de documents externes n'est exercée ici.
+ */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';

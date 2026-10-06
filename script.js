@@ -1,3 +1,9 @@
+/**
+ * Navigation commune, chargée en fin de chaque page HTML.
+ * Contrat DOM : .menu-toggle contient .sr-only ; .primary-navigation contient
+ * les liens et les sous-menus <details class="club-dropdown">.
+ * Le JavaScript gère l'état et le focus ; styles.css décide du seuil mobile.
+ */
 // Navigation commune à toutes les pages : bouton mobile et liste des liens.
 const toggle = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('.primary-navigation');

@@ -1,3 +1,9 @@
+/*
+ * Styles communs chargés par toutes les pages, avant les feuilles spécialisées.
+ * Organisation : palette/base, navigation, sections, adaptations, composants.
+ * Plusieurs composants sont complétés plus bas : conserver l'ordre de cascade.
+ * Les classes manipulées par JavaScript sont décrites dans DOCUMENTATION_TECHNIQUE.md.
+ */
 /* Palette commune : modifier ces variables pour ajuster les couleurs du site. */
 :root { --blue: #0647bb; --deep-blue: #062c75; --ink: #080b12; --paper: #f7f7f5; --line: #d9dce1; --white: #fff; }
 /* Inclure bordures et espacements internes dans les dimensions calculées. */
@@ -234,6 +240,10 @@ a:focus-visible, button:focus-visible { outline: 2px solid #78a7ff; outline-offs
 .fixture-versus p:last-child { text-align: right; }
 .fixture-ast { font-weight: 800; }
 .fixture-score { padding: .6rem; border-radius: 4px; color: var(--deep-blue); background: #f2f6ff; text-align: center; font-weight: 800; }
+/* calendar.js applique cette couleur au seul nombre de l'AST après comparaison des scores. */
+.fixture-score-win, .fixture-score-loss { display: inline-block; padding: .1rem .35rem; border-radius: 3px; }
+.fixture-score-win { color: #166534; background: #dcfce7; }
+.fixture-score-loss { color: #991b1b; background: #fee2e2; }
 .fixture-link { display: inline-block; color: var(--blue); font-size: .8rem; text-decoration: underline; text-underline-offset: .2em; }
 .calendar-empty { padding: 2rem; border: 1px dashed var(--line); border-radius: 6px; line-height: 1.6; background: #fff; }
 .calendar-updated { margin-top: 2rem; }

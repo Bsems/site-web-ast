@@ -1,7 +1,12 @@
-// Le JSON est la source ; ce fichier génère le support de l'ouverture en file://.
+/**
+ * Générer window.AST_PARTNERS pour l'ouverture locale de partenaires.html.
+ * Source unique : data/partners.json. Vérifier les identités, images locales et
+ * protocoles des liens avant toute écriture ; aucune URL externe n'est consultée.
+ */
 import { readFile, writeFile, access } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const data = JSON.parse(await readFile(new URL('data/partners.json', root), 'utf8'));
+// Interdire les doublons et les images hors du dossier Partenaires.
 const ids = new Set();
 if (!Array.isArray(data.partners) || !data.partners.length) throw new Error('Liste de partenaires vide.');
 for (const partner of data.partners) {
@@ -15,6 +20,7 @@ for (const partner of data.partners) {
     }
   }
 }
+// Garder le commentaire de provenance dans la sortie générée, sans y éditer les données.
 await writeFile(new URL('data/partners-data.js', root),
   '// Généré par node scripts/export-partners.mjs — modifier partners.json.\nwindow.AST_PARTNERS = ' +
   JSON.stringify(data, null, 2) + ';\n');

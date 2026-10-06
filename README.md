@@ -4,6 +4,10 @@ Site de l’Association Sportive Tournefeuille Basketball, réalisé en HTML, CS
 JavaScript. Il propose des pages distinctes pour présenter le club, ses gymnases,
 ses équipes et ses partenaires, ainsi qu’un calendrier hebdomadaire des rencontres.
 
+La [documentation technique de maintenance](DOCUMENTATION_TECHNIQUE.md) détaille
+l'architecture, chaque programme, les contrats de données, les générateurs,
+les tests, la publication et les procédures de diagnostic.
+
 ## Consulter le site en local
 
 Ouvrir `index.html` dans un navigateur récent. Aucun serveur, compte, installation
@@ -13,8 +17,9 @@ Le calendrier charge un fichier de données local : il fonctionne également en
 ouvrant directement `calendrier.html`. Les liens FFBB, les itinéraires Google Maps
 et les réseaux sociaux nécessitent une connexion Internet.
 
-Node.js 22 ou plus récent est nécessaire uniquement pour actualiser les données
-FFBB et exécuter les tests. Le projet n’utilise aucune dépendance npm.
+Node.js 22+ et Python 3.10+ sont nécessaires uniquement pour actualiser les données
+FFBB et exécuter les tests. Les dépendances Python sont dans `requirements-ffbb.in` ;
+voir [CALENDRIER.md](CALENDRIER.md) pour leur installation. Aucune dépendance npm.
 
 ## Pages et navigation
 
@@ -23,7 +28,9 @@ FFBB et exécuter les tests. Le projet n’utilise aucune dépendance npm.
 | Accueil | `index.html` | Visuel de bienvenue, accès au club et informations pratiques. |
 | Présentation du club | `club.html` | Introduction et chronologie de 1973 à 2015. |
 | Nos gymnases | `gymnases.html` | Quatre gymnases, adresses, transports et itinéraires. |
-| Les équipes | `equipes.html` | École de basket, Jeunes (U11 à U18) et Séniors ; liens vers les poules FFBB. |
+| Les équipes | `equipes.html` | École de basket, Jeunes (U13 à U18) et Séniors ; liens vers les engagements FFBB. |
+| École de basket | `ecole-de-basket.html` | Micro-basket, mini-basket et équipes U5 à U11. |
+| Basket Santé | `basket-sante.html` | Présentation, séances et médias. |
 | Calendrier / Résultats | `calendrier.html` | Rencontres de toutes les équipes regroupées par semaine, puis par jour et horaire. |
 | Inscription | `inscription.html` | Démarches, documents, cotisation et permanences. |
 | Actualités | `actualites.html` | Emplacements en attente de publications. |
@@ -50,7 +57,7 @@ site-web-ast/
 │   └── calendar-data.js      Copie générée pour l’ouverture locale
 ├── scripts/
 │   ├── update-calendar.mjs   Import des rencontres et scores via l’API
-│   ├── ffbb-client.mjs       Client REST et normalisation des réponses
+│   ├── ffbb_import.py        Import direct via ffbb-api-client-v2
 │   ├── export-calendar.mjs   Génération de la copie JS et de la page équipes
 │   └── calendar.test.mjs     Tests du calendrier et de l’import
 ├── Image_AST/                Logos fournis pour le projet
@@ -66,7 +73,7 @@ site-web-ast/
 - Conserver l’encodage UTF-8 pour les accents.
 - Utiliser `styles.css` pour la présentation commune et les règles mobiles.
 - L’en-tête et le pied de page sont présents dans chaque fichier HTML : toute
-  modification de navigation ou d’identité doit être reportée sur les onze pages.
+  modification de navigation ou d’identité doit être reportée sur les treize pages.
 - Le logo affiché est `Image_AST/AST_logo_L.jpeg`. Conserver les proportions de
   l’image et un texte alternatif ; `main_logo.png` est également fourni dans le dossier.
 - La présentation du club reprend `Texte/Historique_AST.txt` : modifier le texte
@@ -87,15 +94,16 @@ Chaque rencontre indique la catégorie AST, les adversaires, le lieu de jeu
 Les rencontres sans date sont affichées séparément. Les scores sont présentés
 dans l’ordre **équipe à domicile – équipe à l’extérieur**.
 
-Les données sont récupérées via l’API publique intermédiaire
-[FFBB Data Client](https://ffbb-api.desimone.fr/docs). Les équipes sont découvertes
-automatiquement, coupes comprises. Les scores proviennent des détails des poules
-et sont associés aux rencontres par identifiant. Aucune page HTML FFBB n’est extraite.
+Les données sont récupérées directement auprès de la FFBB avec le client Python
+[ffbb-api-client-v2](https://pypi.org/project/ffbb-api-client-v2/), version 1.4.0.
+Les rencontres de la saison active sont paginées par club, coupes et anciennes
+phases comprises. Les scores proviennent directement des rencontres.
+Aucune page HTML FFBB n’est extraite.
 Pour importer les derniers horaires et résultats depuis la racine du projet :
 
 ```sh
 node scripts/update-calendar.mjs
-node --test scripts/calendar.test.mjs scripts/ffbb-api.test.mjs
+node --test scripts/calendar.test.mjs scripts/permanences.test.mjs
 ```
 
 Publier ensuite `data/calendar.json`, sa copie générée `data/calendar-data.js`
@@ -107,8 +115,8 @@ de plus de deux jours. La procédure complète est décrite dans [CALENDRIER.md]
 ne pas les modifier à la main. Chaque équipe figure une seule fois, sans liste de
 compétitions. Les engagements en coupe restent disponibles dans le calendrier.
 Les classements disponibles sont conservés dans le JSON pour une future présentation.
-Un workflow GitHub Actions est préparé pour deux imports quotidiens. Il reste à
-publier et à raccorder au déploiement du site ; voir `BACKLOG.txt`.
+Le workflow GitHub Actions prévoit deux imports quotidiens avec Node et Python.
+La mise à jour de l’hébergement doit suivre celle du dépôt ; voir `BACKLOG.txt`.
 
 ## Vérifier les modifications
 
@@ -116,11 +124,12 @@ publier et à raccorder au déploiement du site ; voir `BACKLOG.txt`.
 node --check script.js
 node --check calendar.js
 node --check scripts/update-calendar.mjs
-node --check scripts/ffbb-client.mjs
-node --test scripts/calendar.test.mjs scripts/ffbb-api.test.mjs
+node --test scripts/calendar.test.mjs scripts/permanences.test.mjs
+python -m unittest discover -s scripts -p "test_*.py"
 git diff --check
 ```
 
+Les tests Python nécessitent l’environnement décrit dans `CALENDRIER.md`.
 Les tests couvrent les semaines à cheval sur deux années, le tri de plusieurs
 équipes, les statuts et scores, les erreurs API, les imports incomplets et la
 cohérence entre le JSON et sa copie locale. Un score historique sert de contrôle
@@ -132,8 +141,9 @@ sur mobile, les semaines sans match, les scores et les liens de chaque rubrique.
 ## Publication
 
 Le site peut être servi par un hébergement statique. Publier les fichiers HTML,
-`styles.css`, `script.js`, `calendar.js`, le dossier `data/` et les images utilisées
-dans `Image_AST/`, en conservant leur arborescence et la casse des noms.
+les cinq CSS, les quatre JS de navigateur, le dossier `data/` et les images utilisées
+dans `Image_AST/` et `Partenaires/`, en conservant leur arborescence et la casse des noms.
+La liste et la procédure de publication sont dans la documentation technique.
 
 Les scripts d’import sont exécutés localement ; ils ne nécessitent aucun serveur
 Node.js sur l’hébergement. Le dépôt Git conserve les sources et l’instantané FFBB.

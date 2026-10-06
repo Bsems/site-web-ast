@@ -1,6 +1,6 @@
 {
-  "baseUrl": "https://ffbb-api.desimone.fr",
-  "documentationUrl": "https://ffbb-api.desimone.fr/docs",
+  "baseUrl": "https://api.ffbb.app",
+  "documentationUrl": "https://pypi.org/project/ffbb-api-client-v2/",
   "club": {
     "code": "OCC0031039",
     "url": "https://competitions.ffbb.com/ligues/occ/comites/0031/clubs/occ0031039",

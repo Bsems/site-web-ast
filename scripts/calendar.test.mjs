@@ -1,7 +1,16 @@
-// Tests hors réseau : lancer node --test scripts/calendar.test.mjs.
+/**
+ * Tests hors réseau : node --test scripts/calendar.test.mjs.
+ * Couverture : dates et scores, échec du lanceur, cohérence JSON/copie JS.
+ * Les assertions sur les matchs versionnés sont des témoins historiques :
+ * les remplacer par des résultats vérifiés lors d'un changement de saison.
+ * Cette suite ne monte pas le DOM et ne vérifie donc pas le rendu CSS du score.
+ */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import calendar from '../calendar.js';
 
@@ -30,6 +39,18 @@ test('Only played matches display scores, including a genuine zero', () => {
 test('Missing scores never display undefined', () => {
   assert.equal(calendar.result({ played: true }, '2026-10-02'), 'Score indisponible');
 });
+
+test('A failed Python import preserves the JSON, local copy and team page', async () => {
+  const root = new URL('../', import.meta.url);
+  const paths = ['data/calendar.json', 'data/calendar-data.js', 'equipes.html'].map(p => new URL(p, root));
+  const before = await Promise.all(paths.map(p => readFile(p)));
+  await assert.rejects(promisify(execFile)(process.execPath, [fileURLToPath(new URL('scripts/update-calendar.mjs', root))], {
+    // Node cannot execute the Python importer: fail before any network request.
+    env: { ...process.env, FFBB_PYTHON: process.execPath },
+  }));
+  const after = await Promise.all(paths.map(p => readFile(p)));
+  assert.deepEqual(after, before);
+});
 // Contrôler l’instantané versionné : couverture des équipes, unicité, liens et orientation des scores.
 test('API snapshot and local export agree and preserve score orientation', async () => {
   const context = { window: {} };
@@ -38,6 +59,7 @@ test('API snapshot and local export agree and preserve score orientation', async
   const json = JSON.parse(await readFile(new URL('../data/calendar.json', import.meta.url), 'utf8'));
   assert.deepEqual(JSON.parse(JSON.stringify(data)), json);
   assert.equal(data.sourceType, 'api');
+  assert.equal(data.client, 'ffbb-api-client-v2');
   assert.ok(data.teams.length >= 10);
   assert.equal(new Set(data.matches.map(m => m.id)).size, data.matches.length);
   assert.equal(data.teams.reduce((sum, team) => sum + team.count, 0), data.matches.length);
@@ -50,4 +72,9 @@ test('API snapshot and local export agree and preserve score orientation', async
   assert.equal(known.date, '2026-09-19T20:00:00');
   assert.equal(known.homeScore, 49);
   assert.equal(known.awayScore, 74);
+  // Régression : cette rencontre récente n’était pas couverte par l’ancien import.
+  const recent = data.matches.find(m => m.id === '200000014837301');
+  assert.ok(recent, 'Le résultat du 3 octobre doit être conservé même sans engagement listé.');
+  assert.equal(recent.date, '2026-10-03T17:00:00');
+  assert.equal(calendar.result(recent, '2026-10-05'), '78 – 46');
 });

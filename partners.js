@@ -1,4 +1,9 @@
-// Affichage des partenaires à partir du JSON, avec instantané pour file://.
+/**
+ * Cartes interactives de partenaires.html.
+ * Entrée : data/partners.json sur HTTP(S), window.AST_PARTNERS en file://.
+ * Contrat DOM : [data-partners-grid] et [data-partners-status].
+ * Une seule carte est ouverte ; la face cachée est exclue du parcours clavier.
+ */
 (() => {
   const grid = document.querySelector('[data-partners-grid]');
   const status = document.querySelector('[data-partners-status]');
@@ -12,6 +17,7 @@
   };
   let closeCurrent = null;
 
+  /* Construction d'une carte : recto bouton, verso groupe de liens et retour. */
   function createCard(partner, index) {
     const card = element('article', 'partner-flip-card');
     const inner = element('div', 'partner-flip-inner');
@@ -39,6 +45,7 @@
     back.append(element('h2', 'partner-back-title', partner.name));
 
     const links = element('div', 'partner-links');
+    // Filtrer aussi à l'affichage : seuls les liens explicitement actifs et HTTPS sortent.
     for (const link of partner.links) {
       if (link.enabled !== true) continue;
       let url;
@@ -61,6 +68,10 @@
     inner.append(front, back);
     card.append(inner);
 
+    /*
+     * La rotation CSS seule ne suffit pas : inert/aria-hidden suivent la face
+     * visible, et les événements rendent le focus à une cible encore accessible.
+     */
     const setOpen = open => {
       card.classList.toggle('is-flipped', open);
       front.setAttribute('aria-expanded', String(open));
@@ -91,6 +102,10 @@
   }
 
   async function loadPartners() {
+    /*
+     * Sur HTTP(S), une erreur présente un bouton Réessayer ; il n'y a pas de
+     * repli vers AST_PARTNERS. Cette copie n'est utilisée qu'en ouverture locale.
+     */
     grid.setAttribute('aria-busy', 'true');
     try {
       let data;

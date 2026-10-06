@@ -1,3 +1,9 @@
+/**
+ * Calendrier public : aucune requête FFBB depuis le navigateur.
+ * Entrées : window.AST_CALENDAR, puis data/calendar.json sur HTTP(S).
+ * Sortie : DOM de #weekly-calendar ; le JSON reste la source de référence.
+ * Les fonctions calendaires sont exportées sous Node pour les tests hors réseau.
+ */
 // Isoler les variables du calendrier pour éviter les collisions avec les autres scripts.
 (async function () {
   'use strict';
@@ -37,6 +43,11 @@
   if (!root) return;
   // Lire l’instantané local chargé par la page avant ce script.
   let data = window.AST_CALENDAR;
+  /*
+   * Sur le web, préférer le JSON frais avec un délai maximal de dix secondes.
+   * En cas d'échec, garder la copie JS déjà chargée ; en file://, éviter fetch.
+   * L'avertissement de fraîcheur indique l'âge de l'import, pas celui des scores FFBB.
+   */
   if (location.protocol !== 'file:') {
     try {
       const response = await fetch('data/calendar.json', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
@@ -100,7 +111,23 @@
     if (match.date) time.dateTime = match.date;
     meta.append(time);
     const versus = node('div', 'fixture-versus');
-    versus.append(node('p', match.atHome ? 'fixture-ast' : '', match.home), node('p', 'fixture-score', result(match, today)), node('p', match.atHome ? '' : 'fixture-ast', match.away));
+    const score = node('p', 'fixture-score', result(match, today));
+    /*
+     * Colorer uniquement le nombre de l'AST, sans inverser domicile/extérieur.
+     * atHome fait foi : le nom de l'équipe n'est pas utilisé pour la comparaison.
+     * Les égalités, matchs non joués et scores incomplets restent neutres.
+     */
+    if (match.played && Number.isInteger(match.homeScore) && Number.isInteger(match.awayScore) && typeof match.atHome === 'boolean' && match.homeScore !== match.awayScore) {
+      const astScore = match.atHome ? match.homeScore : match.awayScore;
+      const opponentScore = match.atHome ? match.awayScore : match.homeScore;
+      const won = astScore > opponentScore;
+      const highlight = node('span', won ? 'fixture-score-win' : 'fixture-score-loss', String(astScore));
+      highlight.title = won ? 'Victoire de l’AST' : 'Défaite de l’AST';
+      score.replaceChildren(...(match.atHome
+        ? [highlight, ` – ${match.awayScore}`]
+        : [`${match.homeScore} – `, highlight]));
+    }
+    versus.append(node('p', match.atHome ? 'fixture-ast' : '', match.home), score, node('p', match.atHome ? '' : 'fixture-ast', match.away));
     if (match.location) card.append(node('p', 'calendar-summary', match.location));
     const detail = node('a', 'fixture-link', 'Rencontres sur la FFBB ↗');
     detail.href = match.url; detail.target = '_blank'; detail.rel = 'noopener noreferrer';

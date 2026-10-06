@@ -1,4 +1,14 @@
+/**
+ * Calendrier mensuel des permanences, propre à inscription.html.
+ * Les événements sont incorporés dans #permanences-data par l'exporteur Node.
+ * Le navigateur n'effectue aucune requête et conserve l'année dans les calculs,
+ * mais les libellés affichés omettent l'année conformément aux règles du projet.
+ */
 (() => {
+  /*
+   * month suit Date : janvier = 0, décembre = 11. Les cellules nulles complètent
+   * les semaines du lundi au dimanche ; plusieurs événements peuvent partager un jour.
+   */
   function monthDays(year, month, events) {
     const offset = (new Date(year, month, 1).getDay() + 6) % 7;
     const count = new Date(year, month + 1, 0).getDate();
@@ -10,6 +20,7 @@
     while (days.length % 7) days.push(null);
     return days;
   }
+  // Fournir le calcul pur aux tests Node avant tout accès au DOM.
   if (typeof module !== 'undefined') module.exports = { monthDays };
   if (typeof document === 'undefined') return;
   const calendar = document.getElementById('permanences-calendar');
@@ -18,10 +29,12 @@
   const title = document.getElementById('permanences-month');
   const body = document.getElementById('permanences-days');
   const details = document.getElementById('permanences-details');
+  // Contrairement au calendrier FFBB, ce composant suit le fuseau du navigateur.
   const today = new Date();
   let month = new Date(today.getFullYear(), today.getMonth(), 1);
   const monthFormat = new Intl.DateTimeFormat('fr-FR', { month: 'long' });
   const dayFormat = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  /* Reconstruire le mois et ses détails depuis la même liste d'événements. */
   function render() {
     title.textContent = monthFormat.format(month);
     body.replaceChildren();
@@ -55,6 +68,7 @@
       details.append(empty);
     }
   }
+  // Toujours repartir du premier jour : Date normalise les passages d'année.
   calendar.querySelectorAll('[data-month-offset]').forEach(button => {
     button.addEventListener('click', () => {
       month = new Date(month.getFullYear(), month.getMonth() + Number(button.dataset.monthOffset), 1);

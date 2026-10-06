@@ -1,3 +1,8 @@
+/*
+ * Présentation de ecole-de-basket.html, après styles.css.
+ * Les classes school-* dépendent du modèle export-ecole-de-basket.mjs.
+ * Les grilles se replient à 900/600 px ; object-fit: contain préserve les photos.
+ */
 .school-page h1 { margin: 1.5rem 0; font-size: clamp(3.6rem, 9vw, 8rem); line-height: .95; letter-spacing: -.065em; text-transform: uppercase; }
 .school-page h1 em { font-family: Georgia, serif; font-weight: 400; text-transform: none; }
 .school-page h2 { font-size: clamp(2.3rem, 5vw, 5rem); line-height: 1.05; letter-spacing: -.05em; }
