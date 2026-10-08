@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urljoin, urlparse
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from ffbb_api_client_v2 import FFBBAPIClientV2, TokenManager
@@ -95,13 +96,40 @@ def club_side(match, club_id):
     raise ValueError(f"Rencontre hors du club : {match.id}")
 
 
-def normalize_match(match, team, club_id, location):
+def fetch_logos(client, club, organisme_ids, warnings):
+    """Associer chaque club à l'identifiant UUID de son logo FFBB, ou None.
+
+    Les logos sont décoratifs : toute erreur devient un avertissement et ne bloque
+    jamais l'import des scores. Seul un UUID valide est conservé, car calendar.js
+    l'insère dans une URL https://api.ffbb.app/assets/<uuid>.
+    """
+    logos = {}
+    for organisme_id in sorted({str(i) for i in organisme_ids if i is not None}):
+        if organisme_id == str(club.id):
+            organisme = club
+        else:
+            try:
+                organisme = client.get_organisme(int(organisme_id))
+            except Exception as error:
+                warnings.append(f'get_organisme({organisme_id}) : logo indisponible ({error})')
+                organisme = None
+        logo = getattr(organisme, 'logo', None) if organisme and str(organisme.id) == organisme_id else None
+        try:
+            logos[organisme_id] = str(UUID(str(logo))) if logo else None
+        except ValueError:
+            logos[organisme_id] = None
+    return logos
+
+
+def normalize_match(match, team, club_id, location, logos=None):
     """Adapter un modèle SDK au contrat lu par calendar.js.
 
     Les scores restent dans l'ordre domicile/extérieur. Le statut joue contrôle
     leur publication ; None signifie inconnu, tandis que zéro reste un vrai score.
     Les liens de rencontre doivent appartenir au domaine officiel en HTTPS.
+    logos associe l'identifiant d'un club à l'UUID de son logo (voir fetch_logos).
     """
+    logos = logos or {}
     at_home, team_id = club_side(match, club_id)
     if team_id != team['id'] or not match.nomEquipe1 or not match.nomEquipe2:
         raise ValueError("Équipe de la rencontre invalide")
@@ -120,6 +148,8 @@ def normalize_match(match, team, club_id, location):
         'id': identifier(match.id), 'team': team['label'], 'teamId': team_id,
         'date': local_date(match.date_rencontre),
         'home': match.nomEquipe1, 'away': match.nomEquipe2, 'atHome': at_home,
+        'homeLogo': logos.get(str(match.idOrganismeEquipe1)),
+        'awayLogo': logos.get(str(match.idOrganismeEquipe2)),
         'played': match.joue,
         'homeScore': score(match.resultatEquipe1) if match.joue else None,
         'awayScore': score(match.resultatEquipe2) if match.joue else None,
@@ -221,13 +251,15 @@ def import_calendar(client, config):
         if salle and str(salle.id) != str(salle_id):
             raise ValueError(f"Salle FFBB invalide : {salle_id}")
         salles[salle_id] = salle.libelle if salle else None
+    # Lire une fois le logo de chaque club rencontré, AST compris.
+    logos = fetch_logos(client, club, {i for m in raw_matches for i in (m.idOrganismeEquipe1, m.idOrganismeEquipe2)}, warnings)
     matches = []
     for match in raw_matches:
         team_id = club_side(match, club_id)[1]
         if team_id not in teams:
             raise ValueError("Rencontre sans engagement actif")
         team = teams[team_id]
-        matches.append(normalize_match(match, team, club_id, salles.get(match.salle)))
+        matches.append(normalize_match(match, team, club_id, salles.get(match.salle), logos))
         team['count'] += 1
     # Les classements sont conservés pour un futur affichage. Leur structure rows
     # dépend des modèles du SDK ; une poule inaccessible est marquée available=False.

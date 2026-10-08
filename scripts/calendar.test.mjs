@@ -36,6 +36,25 @@ test('Only played matches display scores, including a genuine zero', () => {
   assert.equal(calendar.result({ played: true, homeScore: 0, awayScore: 20 }, '2026-09-22'), '0 – 20');
   assert.equal(calendar.result({ played: false, date: '2026-09-22T20:00:00' }, '2026-09-22'), 'Aujourd’hui');
 });
+// L'issue se lit du point de vue de l'AST, à domicile comme à l'extérieur.
+test('Outcome follows the AST side, not the score order', () => {
+  assert.equal(calendar.outcome({ played: true, atHome: false, homeScore: 53, awayScore: 65 }, '2026-10-08'), 'win');
+  assert.equal(calendar.outcome({ played: true, atHome: true, homeScore: 53, awayScore: 65 }, '2026-10-08'), 'loss');
+  assert.equal(calendar.outcome({ played: true, atHome: true, homeScore: 60, awayScore: 60 }, '2026-10-08'), 'draw');
+  assert.equal(calendar.outcome({ played: false, date: '2026-10-08T20:00:00' }, '2026-10-08'), 'today');
+  assert.equal(calendar.outcome({ played: false, date: '2026-10-10T20:00:00' }, '2026-10-08'), 'upcoming');
+  assert.equal(calendar.outcome({ played: true, atHome: true, date: '2026-10-01T20:00:00' }, '2026-10-08'), 'unknown');
+});
+// Les initiales remplacent un logo absent ; seule une URL FFBB issue d'un UUID est produite.
+test('Crest fallback initials and logo URLs are safe', () => {
+  assert.equal(calendar.initials('IE - BASKET CLUB LOURDAIS - 2'), 'L');
+  assert.equal(calendar.initials('TARBES UNION BASKET 65 - 3'), 'TU');
+  assert.equal(calendar.initials('BC'), 'B');
+  assert.equal(calendar.initials(''), '?');
+  assert.equal(calendar.logoUrl('74983c7e-1f1f-4c55-8d28-d4cdc929448a'),
+    'https://api.ffbb.app/assets/74983c7e-1f1f-4c55-8d28-d4cdc929448a?width=128&height=128&fit=inside&format=webp');
+  for (const value of [null, undefined, '', '../x', 'https://evil.example/a.png', 42]) assert.equal(calendar.logoUrl(value), null);
+});
 test('Missing scores never display undefined', () => {
   assert.equal(calendar.result({ played: true }, '2026-10-02'), 'Score indisponible');
 });

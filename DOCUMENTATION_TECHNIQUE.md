@@ -258,6 +258,7 @@ Un élément `matches[]` contient :
 | `atHome` | Booléen déterminé par les identifiants de club |
 | `played` | Booléen provenant de `joue` |
 | `homeScore`, `awayScore` | Entiers positifs ou nuls, ou `null` ; toujours `null` si non joué |
+| `homeLogo`, `awayLogo` | UUID du logo FFBB du club, ou `null` si absent ou inaccessible |
 | `round` | Numéro de journée fourni par le client, éventuellement absent |
 | `url` | Lien individuel officiel, sinon lien de l'engagement/du club |
 | `location` | Libellé de salle ou `null` |
@@ -343,7 +344,8 @@ Le seuil de passage en menu mobile est dans le CSS, pas dans le JavaScript.
 ### 6.2 Calendrier — `calendar.js`
 
 L'IIFE asynchrone isole ses variables. Sous Node, elle exporte `shift`, `monday`,
-`groupWeeks` et `result`, puis s'arrête avant d'accéder au DOM.
+`groupWeeks`, `result`, `outcome`, `initials` et `logoUrl`, puis s'arrête avant
+d'accéder au DOM.
 
 Ordre de chargement nécessaire : `data/calendar-data.js` puis `calendar.js`.
 Le premier définit `window.AST_CALENDAR`. En HTTP(S), le second essaie
@@ -362,9 +364,16 @@ Les résultats du week-end passé peuvent donc se trouver dans la semaine préc�
 
 `result` retourne le score si `played` et les deux entiers sont présents ; sinon
 « Aujourd'hui », « À venir » ou « Score indisponible » selon la date.
-`matchCard` surligne seulement le score AST : vert si supérieur, rouge si inférieur.
-Les scores égaux ou incomplets restent neutres. Le nom AST est également en gras.
-Un titre sur le nombre indique victoire/défaite.
+`outcome` donne l'issue vue par l'AST (`win`, `loss`, `draw`, `today`, `upcoming`,
+`unknown`) à partir de `atHome`, jamais du nom des équipes.
+`matchCard` présente un tableau d'affichage : écussons et noms domicile/extérieur,
+score au centre (le chiffre du vainqueur en bleu, l’autre en gris), ou « VS »
+avant le match. La classe `fixture--<issue>` colore la bordure et le badge.
+`logoUrl` n'accepte qu'un UUID et produit une miniature 128 px de
+`https://api.ffbb.app/assets/<uuid>` ; sans logo ou en cas d'erreur de chargement,
+`initials` fournit des initiales sur une couleur dérivée du nom.
+`tally` affiche le bilan de la semaine en pastilles (victoires, défaites, à venir).
+Les animations sont désactivées si `prefers-reduced-motion` est actif.
 
 `render` reconstruit la liste par jour, actualise le résumé `role="status"` et les
 limites des flèches. Les rencontres sans date sont rendues dans une section séparée.
@@ -565,7 +574,7 @@ sont chargées **après** cette base et réutilisent ses variables.
 | --- | --- | --- |
 | Menu mobile | `.is-open`, `aria-expanded` | `script.js` ↔ `styles.css` |
 | Carte partenaire | `.is-flipped`, `inert`, `aria-hidden` | `partners.js` ↔ `partners.css` |
-| Score AST | `.fixture-score-win`, `.fixture-score-loss` | `calendar.js` ↔ `styles.css` |
+| Fiche de match | `.fixture--win/loss/draw/today/upcoming/unknown`, `.is-ast`, `.is-winner`, `--i`, `--hue` | `calendar.js` ↔ `styles.css` |
 | Permanence | `.has-permanence`, `aria-current="date"` | `permanences.js` ↔ `inscription.css` |
 
 Le menu principal se replie à 1 200 px. Les autres composants possèdent leurs

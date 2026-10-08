@@ -143,6 +143,34 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, '503'):
             import_calendar(api, CONFIG)
 
+    def test_club_logos_are_attached_to_each_side(self):
+        api = client()
+        ast = api.get_organisme.return_value
+        ast.logo = '74983c7e-1f1f-4c55-8d28-d4cdc929448a'
+        opponent = Obj(id='9', logo='d9fe52b1-582d-490d-b9fa-01ec6ef06946')
+        api.get_organisme.side_effect = lambda i: ast if i == 12343 else opponent
+        result = import_calendar(api, CONFIG)['matches'][0]
+        self.assertEqual(result['homeLogo'], 'd9fe52b1-582d-490d-b9fa-01ec6ef06946')
+        self.assertEqual(result['awayLogo'], '74983c7e-1f1f-4c55-8d28-d4cdc929448a')
+
+    def test_missing_invalid_or_failed_logo_never_blocks_scores(self):
+        # Un logo absent, mal formé ou inaccessible laisse le match sans logo.
+        for opponent in [Obj(id='9', logo=None), Obj(id='9', logo='../evil'), FFBBServerError(status_code=503)]:
+            with self.subTest(opponent=opponent):
+                api = client()
+                ast = api.get_organisme.return_value
+
+                def organisme(i, opponent=opponent):
+                    if i == 12343:
+                        return ast
+                    if isinstance(opponent, Exception):
+                        raise opponent
+                    return opponent
+                api.get_organisme.side_effect = organisme
+                result = import_calendar(api, CONFIG)['matches'][0]
+                self.assertIsNone(result['homeLogo'])
+                self.assertEqual(result['awayScore'], 20)
+
     def test_external_match_link_falls_back_to_official_team(self):
         result = normalize_match(match(url_competition='https://example.com'), TEAM, 12343, None)
         self.assertEqual(result['url'], TEAM['source'])

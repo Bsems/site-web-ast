@@ -70,6 +70,12 @@ vrais scores nuls conservés. Les scores absents ou `None` restent indisponibles
 Le lien individuel FFBB du match est utilisé lorsqu’il est disponible, sinon le
 lien officiel de l’engagement ou du club.
 
+Le logo de chaque club rencontré est lu une fois par import via `get_organisme`
+et enregistré par son UUID (`homeLogo`, `awayLogo`). Les logos sont décoratifs :
+une erreur de lecture devient un avertissement et ne bloque jamais les scores.
+Le navigateur charge une miniature publique depuis `https://api.ffbb.app/assets/`
+et affiche les initiales du club si le logo manque.
+
 La date d’import figure sous le calendrier. Après 48 heures, un message indique
 que des résultats récents peuvent manquer.
 
