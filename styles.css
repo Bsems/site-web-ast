@@ -230,21 +230,52 @@ a:focus-visible, button:focus-visible { outline: 2px solid #78a7ff; outline-offs
 .calendar-summary, .calendar-updated { color: #535b68; font-size: .9rem; line-height: 1.6; }
 .calendar-day { margin-top: 2rem; }
 .calendar-day h3 { margin: 0 0 1rem; color: var(--blue); font-size: 1.05rem; text-transform: capitalize; }
+.calendar-tally { display: flex; flex-wrap: wrap; gap: .5rem; margin: .25rem 0 0; }
+.calendar-chip { display: inline-flex; align-items: baseline; gap: .3rem; padding: .4rem .8rem; border-radius: 999px; font-size: .82rem; font-weight: 700; }
+.calendar-chip strong { font-size: 1.05rem; font-weight: 900; }
+.calendar-chip--win { color: #14532d; background: #dcfce7; }
+.calendar-chip--loss { color: #7f1d1d; background: #fee2e2; }
+.calendar-chip--draw { color: #713f12; background: #fef3c7; }
+.calendar-chip--upcoming { color: var(--deep-blue); background: #e5edff; }
 .fixture-list { display: grid; gap: 1rem; }
-.fixture { padding: 1.5rem; border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 6px; background: #fff; }
-.fixture-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.2rem; color: #535b68; font-size: .8rem; }
-.fixture-team { color: var(--blue); background: #edf3ff; padding: .35rem .6rem; border-radius: 4px; font-weight: 800; }
-.fixture-meta time { margin-left: auto; font-weight: 800; color: var(--ink); }
-.fixture-versus { display: grid; grid-template-columns: minmax(0, 1fr) minmax(6rem, auto) minmax(0, 1fr); align-items: center; gap: 1.5rem; margin: 1rem 0; }
-.fixture-versus p { margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
-.fixture-versus p:last-child { text-align: right; }
-.fixture-ast { font-weight: 800; }
-.fixture-score { padding: .6rem; border-radius: 4px; color: var(--deep-blue); background: #f2f6ff; text-align: center; font-weight: 800; }
-/* calendar.js applique cette couleur au seul nombre de l'AST après comparaison des scores. */
-.fixture-score-win, .fixture-score-loss { display: inline-block; padding: .1rem .35rem; border-radius: 3px; }
-.fixture-score-win { color: #166534; background: #dcfce7; }
-.fixture-score-loss { color: #991b1b; background: #fee2e2; }
-.fixture-link { display: inline-block; color: var(--blue); font-size: .8rem; text-decoration: underline; text-underline-offset: .2em; }
+/* Fiche de match : la couleur d'issue (--accent) colore la bordure, le badge et le tableau. */
+.fixture { --accent: var(--blue); --accent-soft: #e5edff; padding: 1.25rem 1.5rem; border: 1px solid var(--line); border-top: 5px solid var(--accent); border-radius: 14px; background: #fff; box-shadow: 0 2px 0 rgba(8, 11, 18, .04); transition: transform .2s ease, box-shadow .2s ease; animation: fixture-in .45s ease both; animation-delay: calc(var(--i, 0) * 60ms); }
+.fixture:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -12px rgba(6, 44, 117, .35); }
+.fixture--win { --accent: #16a34a; --accent-soft: #dcfce7; }
+.fixture--loss { --accent: #dc2626; --accent-soft: #fee2e2; }
+.fixture--draw { --accent: #d97706; --accent-soft: #fef3c7; }
+.fixture--today { --accent: #f97316; --accent-soft: #ffedd5; }
+.fixture--unknown { --accent: #9ca3af; --accent-soft: #f3f4f6; }
+.fixture-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; color: #535b68; font-size: .8rem; }
+.fixture-badge { padding: .3rem .7rem; border-radius: 999px; color: var(--ink); background: var(--accent-soft); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; }
+.fixture--today .fixture-badge { animation: fixture-pulse 1.6s ease-in-out infinite; }
+.fixture-team { color: var(--blue); background: #edf3ff; padding: .3rem .6rem; border-radius: 6px; font-weight: 800; }
+.fixture-meta time { margin-left: auto; padding: .3rem .6rem; border-radius: 6px; color: #fff; background: var(--ink); font-weight: 800; font-variant-numeric: tabular-nums; }
+/* Tableau d'affichage : domicile à gauche, extérieur à droite, score au centre. */
+.fixture-board { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 1rem; margin: 1.25rem 0 1rem; }
+.fixture-side { display: flex; flex-direction: column; align-items: center; gap: .6rem; min-width: 0; text-align: center; }
+.fixture-name { margin: 0; font-size: .9rem; line-height: 1.3; overflow-wrap: break-word; }
+.fixture-side.is-ast .fixture-name { color: var(--deep-blue); font-weight: 900; }
+.fixture-crest { display: grid; place-items: center; width: 4.75rem; height: 4.75rem; padding: .55rem; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 6px 14px -8px rgba(8, 11, 18, .45); overflow: hidden; transition: transform .25s ease; }
+.fixture-side.is-ast .fixture-crest { box-shadow: 0 0 0 3px var(--blue), 0 6px 14px -8px rgba(8, 11, 18, .45); }
+.fixture:hover .fixture-crest { transform: rotate(-6deg) scale(1.06); }
+.fixture:hover .fixture-side:last-child .fixture-crest { transform: rotate(6deg) scale(1.06); }
+.fixture-crest img { width: 100%; height: 100%; object-fit: contain; }
+.fixture-crest:has(.fixture-initials) { padding: 0; }
+.fixture-initials { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; color: #fff; background: hsl(var(--hue, 220) 55% 42%); font-weight: 900; font-size: 1.1rem; letter-spacing: -.03em; }
+.fixture-score { display: flex; align-items: center; gap: .4rem; margin: 0; padding: .55rem .9rem; border: 1px solid #d6e2fb; border-radius: 10px; color: var(--deep-blue); background: #f2f6ff; font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.fixture-digit { color: #9aa6bd; }
+.fixture-digit.is-winner { color: var(--blue); }
+.fixture--draw .fixture-digit { color: var(--deep-blue); }
+.fixture-dash { color: #9aa6bd; font-weight: 400; }
+.fixture-score.is-pending { padding: .5rem .8rem; border-color: transparent; color: var(--deep-blue); background: var(--accent-soft); font-size: .95rem; letter-spacing: .06em; }
+.fixture-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 1rem; padding-top: .9rem; border-top: 1px dashed var(--line); }
+.fixture-location { margin: 0; color: #535b68; font-size: .82rem; }
+.fixture-link { display: inline-block; color: var(--blue); font-size: .8rem; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
+.fixture-footer .fixture-link { margin-left: auto; }
+@keyframes fixture-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fixture-pulse { 50% { box-shadow: 0 0 0 6px rgba(249, 115, 22, .2); } }
+@media (prefers-reduced-motion: reduce) { .fixture, .fixture--today .fixture-badge { animation: none; } .fixture, .fixture-crest { transition: none; } }
 .calendar-empty { padding: 2rem; border: 1px dashed var(--line); border-radius: 6px; line-height: 1.6; background: #fff; }
 .calendar-updated { margin-top: 2rem; }
 .calendar-source { margin-top: 1rem; }
@@ -256,7 +287,59 @@ a:focus-visible, button:focus-visible { outline: 2px solid #78a7ff; outline-offs
   .calendar-chooser { order: -1; flex-basis: 100%; }
   .calendar-today { margin-left: auto; }
   .fixture { padding: 1rem; }
-  .fixture-versus { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
-  .fixture-versus p:last-child { text-align: left; }
-  .fixture-score { justify-self: start; }
+  .fixture-board { gap: .5rem; }
+  .fixture-crest { width: 3.75rem; height: 3.75rem; padding: .45rem; }
+  .fixture-name { font-size: .72rem; }
+  .fixture-score { padding: .45rem .6rem; }
+}
+
+/* Page équipe (equipe.js) : chiffres clés, sections, personnes et classement de la poule. */
+.team-page h1 { font-size: clamp(2.8rem, 6.5vw, 6.5rem); }
+.team-back { display: inline-flex; gap: .5rem; margin-bottom: 2rem; color: var(--blue); font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.team-back:hover { text-decoration: underline; text-underline-offset: .2em; }
+.team-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1rem; margin: 2.5rem 0 1rem; }
+.team-figure { display: grid; gap: .3rem; padding: 1.25rem; border: 1px solid var(--line); border-top: 5px solid var(--blue); border-radius: 14px; background: #fff; }
+.team-figure-label { color: #535b68; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.team-figure-value { color: var(--deep-blue); font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 900; line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.team-figure-detail { color: #535b68; font-size: .85rem; }
+.team-section { margin-top: 3.5rem; }
+.team-page .team-section-title { margin: 0 0 1.25rem; font-size: clamp(1.6rem, 3.5vw, 2.4rem); line-height: 1.1; letter-spacing: -.04em; }
+.team-photo { display: block; width: 100%; max-height: 32rem; object-fit: cover; border-radius: 14px; }
+.team-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.team-person { padding: 1.25rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: #fff; text-align: center; }
+.team-person-photo { display: grid; place-items: center; width: 6rem; height: 6rem; margin: 0 auto .9rem; border-radius: 50%; overflow: hidden; background: #edf3ff; }
+.team-person-photo img { width: 100%; height: 100%; object-fit: cover; }
+.team-person-photo .fixture-crest { width: 100%; height: 100%; padding: 0; box-shadow: none; }
+.team-person-name { margin: 0; color: var(--deep-blue); font-weight: 900; }
+.team-person-detail { margin: .35rem 0 0; color: #535b68; font-size: .85rem; }
+.team-match-date { margin: .75rem 0 -.4rem; color: var(--blue); font-size: .9rem; font-weight: 800; text-transform: capitalize; }
+.team-source { margin-top: 3rem; }
+/* Classement : défilement horizontal limité au tableau sur petit écran. */
+.standing-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.standing-scroll:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.standing-table { width: 100%; border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.standing-table caption { padding: 1rem 1.25rem; color: #535b68; font-size: .8rem; font-weight: 700; text-align: left; text-transform: uppercase; letter-spacing: .05em; }
+.standing-table th, .standing-table td { padding: .7rem .6rem; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.standing-table thead th { color: #535b68; background: #f7f9fd; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+.standing-table abbr { text-decoration: none; }
+.standing-table .standing-pos { width: 2.5rem; padding-left: 1.25rem; text-align: left; font-weight: 900; color: var(--deep-blue); }
+.standing-table .standing-team { width: 100%; text-align: left; font-weight: 600; white-space: normal; }
+.standing-team-label { display: flex; align-items: center; gap: .65rem; min-width: 12rem; }
+.standing-team-label .fixture-crest { flex-shrink: 0; width: 2.1rem; height: 2.1rem; padding: .2rem; box-shadow: 0 0 0 1px var(--line); }
+.standing-team-label .fixture-initials { font-size: .7rem; }
+.standing-table .standing-points { color: var(--deep-blue); font-weight: 900; }
+.standing-table td:last-child, .standing-table th:last-child { padding-right: 1.25rem; }
+.standing-table tbody tr:hover { background: #f7f9fd; }
+.standing-table tr.is-ast { background: #e5edff; }
+.standing-table tr.is-ast th, .standing-table tr.is-ast td { color: var(--deep-blue); font-weight: 900; }
+.standing-table tr.is-ast .standing-pos { box-shadow: inset 4px 0 0 var(--blue); }
+@media (max-width: 720px) {
+  .team-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .standing-table { font-size: .82rem; }
+  .standing-table .standing-scored, .standing-table .standing-conceded { display: none; }
+  .standing-table th, .standing-table td { padding: .6rem .35rem; }
+  .standing-table .standing-pos { width: 2rem; padding-left: .75rem; }
+  .standing-team-label { min-width: 0; gap: .45rem; font-size: .75rem; }
+  .standing-team-label .fixture-crest { width: 1.6rem; height: 1.6rem; padding: .1rem; }
+  .standing-table td:last-child, .standing-table th:last-child { padding-right: .75rem; }
 }

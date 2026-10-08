@@ -1,0 +1,16 @@
+{
+  "updatedAt": "2026-10-08",
+  "notes": "Contenu des pages équipe hors FFBB. Clés = slug de displayTeams (ffbb-config.json). Une section vide est masquée. Photos à placer dans Image_AST/equipes/. Après modification : node scripts/export-calendar.mjs.",
+  "teams": {
+    "rf-u13": { "photo": null, "staff": [], "roster": [] },
+    "nf-u15-elite": { "photo": null, "staff": [], "roster": [] },
+    "rf-u15": { "photo": null, "staff": [], "roster": [] },
+    "nf-u18-elite": { "photo": null, "staff": [], "roster": [] },
+    "rf-u18": { "photo": null, "staff": [], "roster": [] },
+    "nf2": { "photo": null, "staff": [], "roster": [] },
+    "rf2": { "photo": null, "staff": [], "roster": [] },
+    "df3": { "photo": null, "staff": [], "roster": [] },
+    "rm3": { "photo": null, "staff": [], "roster": [] },
+    "dm3": { "photo": null, "staff": [], "roster": [] }
+  }
+}

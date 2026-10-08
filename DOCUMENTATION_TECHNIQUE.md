@@ -53,9 +53,14 @@ flowchart TD
     CFG --> EXP
     EXP --> COPY[data/calendar-data.js]
     EXP --> TEAMS[equipes.html]
+    TC[data/equipes.json] --> EXP
+    EXP --> TCOPY[data/equipes-data.js]
     CAL --> UI[calendar.js]
     COPY --> UI
     UI --> PAGE[calendrier.html : calendrier rendu]
+    UI --> TEAM[equipe.js]
+    TCOPY --> TEAM
+    TEAM --> TPAGE[equipe.html : page d'une équipe]
     CONTENT[Sources TXT et JSON] --> GEN[Exporteurs de contenu]
     GEN --> HTML[Pages HTML et copie JS partenaires]
 ```
@@ -75,7 +80,8 @@ Les 13 pages chargent `styles.css` et `script.js`.
 | `index.html` | Accueil, identité et coordonnées | Contenu manuel |
 | `club.html` | Présentation et histoire | Texte repris manuellement de `Texte/Historique_AST.txt` |
 | `gymnases.html` | Salles, adresses et accès | Contenu manuel |
-| `equipes.html` | École de basket, jeunes, séniors | Listes jeunes/séniors générées |
+| `equipes.html` | École de basket, jeunes, séniors | Listes jeunes/séniors générées, liens vers `equipe.html` |
+| `equipe.html?equipe=<slug>` | Page d'une équipe : chiffres clés, prochains matchs, classement, résultats, photo/staff/effectif | `data/calendar-data.js`, `data/equipes-data.js`, `calendar.js`, puis `equipe.js` |
 | `ecole-de-basket.html` | Micro-basket, mini-basket, équipes U5 à U11 | `ecole-de-basket.css`, zone SCHOOL générée |
 | `basket-sante.html` | Présentation, séances et médias Basket Santé | `basket-sante.css`, zone BASKET-SANTE générée |
 | `calendrier.html` | Calendrier et résultats hebdomadaires | `data/calendar-data.js`, puis `calendar.js` |
@@ -95,7 +101,8 @@ La casse et les chemins relatifs doivent être conservés lors de la publication
 | Programme | Exécution | Entrée principale | Sortie / effet |
 | --- | --- | --- | --- |
 | `script.js` | Navigateur, toutes les pages | DOM de navigation | Ouverture, fermeture, focus |
-| `calendar.js` | Navigateur ; fonctions pures importables sous Node | Instantané calendrier | DOM de `#weekly-calendar` |
+| `calendar.js` | Navigateur ; fonctions pures importables sous Node | Instantané calendrier | DOM de `#weekly-calendar`, `window.ASTFixtures` |
+| `equipe.js` | Navigateur | `window.AST_TEAMS`, calendrier via `ASTFixtures` | DOM de `#team-content` |
 | `partners.js` | Navigateur | JSON partenaires ou copie locale | Cartes, liens et navigation clavier |
 | `permanences.js` | Navigateur ; calcul importable sous Node | JSON de `#permanences-data` | Tableau mensuel et détails |
 | `scripts/update-calendar.mjs` | Node, CLI | Sortie du processus Python | JSON puis export calendrier |
@@ -175,6 +182,7 @@ Ce serveur sert uniquement à la vérification locale et n'exécute pas les impo
 | --- | --- | --- | --- |
 | Résultats, dates et horaires des rencontres | FFBB via le client ; configuration locale | `node scripts/update-calendar.mjs` | `data/calendar.json`, `data/calendar-data.js`, `equipes.html` |
 | Libellés et liste des équipes visibles | `data/ffbb-config.json` | `node scripts/export-calendar.mjs` pour `displayTeams` ; réimport pour appliquer `teamLabels` aux matchs | Copie JS, `equipes.html`, et JSON si réimport |
+| Photo, staff et effectif des équipes | `data/equipes.json`, photos sous `Image_AST/equipes/` | `node scripts/export-calendar.mjs` | `data/equipes-data.js` |
 | Partenaires | `data/partners.json`, images de `Partenaires/` | `node scripts/export-partners.mjs` | JSON, copie JS, images concernées |
 | Liens, paiement, contact, permanences | `data/inscriptions-source.json` | `node scripts/export-inscriptions.mjs` | JSON et `inscription.html` |
 | Textes d'inscription | `Texte/Inscriptions_AST_source.txt` | Report éditorial manuel | TXT et `inscription.html` |
@@ -205,7 +213,7 @@ Fichier : `data/ffbb-config.json`.
 | `club.id` | Identifiant numérique FFBB | Sert aux filtres et aux contrôles d'appartenance |
 | `club.code` | Code officiel du club | Comparé à la réponse de `get_organisme` |
 | `club.url` | Page officielle du club | Source et base des liens d'engagement |
-| `displayTeams[]` | Équipes réellement présentées sur `equipes.html` | `name`, `category` (`young`/`senior`), `engagementId` facultatif |
+| `displayTeams[]` | Équipes réellement présentées sur `equipes.html` | `slug` (adresse de `equipe.html`, minuscules et tirets, unique), `name`, `category` (`young`/`senior`), `engagementId` facultatif |
 | `teamLabels` | Dictionnaire identifiant d'engagement → libellé court | Appliqué lors de l'import, pas à chaque rendu navigateur |
 
 `displayTeams` et `teams` dans l'instantané n'ont pas la même signification.
@@ -226,7 +234,7 @@ numériques pour conserver un format de jointure stable entre Python et JavaScri
 | `warnings[]` | Métadonnées annexes refusées/absentes via HTTP 403/404 |
 | `teams[]` | Engagements normalisés |
 | `matches[]` | Rencontres triées par date, libellé d'équipe et identifiant |
-| `standings[]` | Classements disponibles, non affichés actuellement |
+| `standings[]` | Classements des poules, affichés sur les pages équipe |
 
 `updatedAt` prouve qu'un import a été effectué ; il ne certifie pas que chaque
 résultat a déjà été saisi par la fédération. Les métadonnées `warnings` ne sont pas
@@ -258,6 +266,7 @@ Un élément `matches[]` contient :
 | `atHome` | Booléen déterminé par les identifiants de club |
 | `played` | Booléen provenant de `joue` |
 | `homeScore`, `awayScore` | Entiers positifs ou nuls, ou `null` ; toujours `null` si non joué |
+| `homeLogo`, `awayLogo` | UUID du logo FFBB du club, ou `null` si absent ou inaccessible |
 | `round` | Numéro de journée fourni par le client, éventuellement absent |
 | `url` | Lien individuel officiel, sinon lien de l'engagement/du club |
 | `location` | Libellé de salle ou `null` |
@@ -279,9 +288,30 @@ Exemple de structure fictive, sans valeur de résultat de référence :
 Ne pas transformer un score absent en zéro et ne pas permuter les scores pour
 placer l'AST à gauche. Le surlignage utilise `atHome` pour identifier son nombre.
 
-Un classement contient `id`, `name`, `available` et `rows`. Les lignes sont issues
-de `dataclasses.asdict` sur les modèles du client. Leur schéma dépend donc du SDK,
-contrairement au contrat `matches` explicitement construit par le projet.
+Un classement contient `id`, `name`, `available` et `rows`. Le SDK 1.4.0 ne
+fournit que les identifiants des équipes classées : `pool_reader` lit donc la poule
+directement dans Directus avec les champs nommés, et `normalize_standings` produit
+un contrat propre au projet :
+
+| Champ | Sens |
+| --- | --- |
+| `position` | Rang entier |
+| `team` | Nom de l'engagement (suffixe de numéro d'équipe inclus), sinon nom du club |
+| `engagementId`, `clubId` | Identifiants FFBB en chaînes, ou `null` |
+| `logo` | UUID du logo du club, ou `null` |
+| `isAst` | Vrai pour une équipe du club, repérée par identifiant |
+| `points`, `played`, `won`, `lost`, `draws`, `forfeits` | Entiers (vide = 0) |
+| `scored`, `conceded`, `difference` | Points marqués, encaissés et différence |
+| `outOfRanking` | Équipe hors classement |
+
+Une poule inaccessible (HTTP 403/404) reste `available: false` avec un avertissement.
+
+### 5.3 bis Contenu des équipes
+
+`data/equipes.json` contient `teams`, indexé par `slug`. Chaque entrée accepte
+`photo` (chemin sous `Image_AST/equipes/`), `staff` (`name`, `role`, `photo`) et
+`roster` (`name`, `number`, `position`, `height`, `photo`). Les sections vides ne
+sont pas affichées. L'export vérifie les slugs, les noms et l'existence des photos.
 
 ### 5.4 Partenaires
 
@@ -343,7 +373,8 @@ Le seuil de passage en menu mobile est dans le CSS, pas dans le JavaScript.
 ### 6.2 Calendrier — `calendar.js`
 
 L'IIFE asynchrone isole ses variables. Sous Node, elle exporte `shift`, `monday`,
-`groupWeeks` et `result`, puis s'arrête avant d'accéder au DOM.
+`groupWeeks`, `result`, `outcome`, `initials` et `logoUrl`, puis s'arrête avant
+d'accéder au DOM.
 
 Ordre de chargement nécessaire : `data/calendar-data.js` puis `calendar.js`.
 Le premier définit `window.AST_CALENDAR`. En HTTP(S), le second essaie
@@ -362,13 +393,33 @@ Les résultats du week-end passé peuvent donc se trouver dans la semaine préc�
 
 `result` retourne le score si `played` et les deux entiers sont présents ; sinon
 « Aujourd'hui », « À venir » ou « Score indisponible » selon la date.
-`matchCard` surligne seulement le score AST : vert si supérieur, rouge si inférieur.
-Les scores égaux ou incomplets restent neutres. Le nom AST est également en gras.
-Un titre sur le nombre indique victoire/défaite.
+`outcome` donne l'issue vue par l'AST (`win`, `loss`, `draw`, `today`, `upcoming`,
+`unknown`) à partir de `atHome`, jamais du nom des équipes.
+`matchCard` présente un tableau d'affichage : écussons et noms domicile/extérieur,
+score au centre (le chiffre du vainqueur en bleu, l’autre en gris), ou « VS »
+avant le match. La classe `fixture--<issue>` colore la bordure et le badge.
+`logoUrl` n'accepte qu'un UUID et produit une miniature 128 px de
+`https://api.ffbb.app/assets/<uuid>` ; sans logo ou en cas d'erreur de chargement,
+`initials` fournit des initiales sur une couleur dérivée du nom.
+`tally` affiche le bilan de la semaine en pastilles (victoires, défaites, à venir).
+Les animations sont désactivées si `prefers-reduced-motion` est actif.
 
 `render` reconstruit la liste par jour, actualise le résumé `role="status"` et les
 limites des flèches. Les rencontres sans date sont rendues dans une section séparée.
 Les éléments sont créés avec `textContent`, sans injecter les noms FFBB en HTML.
+
+### 6.2 bis Page équipe — `equipe.js`
+
+`calendar.js` doit être chargé avant : il expose `window.ASTFixtures` (`node`,
+`crest`, `matchCard`, `outcome`, `logoUrl`, `loadCalendar`, `parisToday`) puis
+s'arrête faute de `#weekly-calendar`. `equipe.js` lit `?equipe=<slug>`, retrouve
+l'équipe dans `window.AST_TEAMS` et la relie à son engagement, sa poule et ses
+matchs (`teamId === engagementId`). Ordre affiché : chiffres clés (position,
+victoires, défaites, points), photo, staff et effectif s'ils existent, trois
+prochains matchs, classement complet, résultats du plus récent au plus ancien,
+lien FFBB. Un slug inconnu affiche « Équipe introuvable ». Un instantané dont les
+lignes de classement n'ont pas `isAst` (format antérieur) est traité comme
+« Classement indisponible ».
 
 ### 6.3 Partenaires — `partners.js`
 
@@ -451,8 +502,9 @@ sont filtrés ; les erreurs bloquantes continuent de remonter.
    match sert de repli, et les champs inconnus restent `null`.
 7. Les salles sont résolues une fois ; `normalize_match` valide puis adapte chaque
    rencontre. Les compteurs par engagement sont incrémentés.
-8. Les poules des rencontres alimentent les classements, en conservant un état
-   indisponible quand une métadonnée ne peut pas être lue.
+8. Les poules des rencontres alimentent les classements via `read_pool`
+   (`pool_reader` en production), en conservant un état indisponible quand une
+   poule ne peut pas être lue.
 9. L'enveloppe reçoit la date d'import et est sérialisée une seule fois sur stdout.
 
 ### 7.4 Validation des réponses et erreurs
@@ -565,7 +617,8 @@ sont chargées **après** cette base et réutilisent ses variables.
 | --- | --- | --- |
 | Menu mobile | `.is-open`, `aria-expanded` | `script.js` ↔ `styles.css` |
 | Carte partenaire | `.is-flipped`, `inert`, `aria-hidden` | `partners.js` ↔ `partners.css` |
-| Score AST | `.fixture-score-win`, `.fixture-score-loss` | `calendar.js` ↔ `styles.css` |
+| Classement | `tr.is-ast`, `.standing-<colonne>` | `equipe.js` ↔ `styles.css` |
+| Fiche de match | `.fixture--win/loss/draw/today/upcoming/unknown`, `.is-ast`, `.is-winner`, `--i`, `--hue` | `calendar.js` ↔ `styles.css` |
 | Permanence | `.has-permanence`, `aria-current="date"` | `permanences.js` ↔ `inscription.css` |
 
 Le menu principal se replie à 1 200 px. Les autres composants possèdent leurs
@@ -644,8 +697,8 @@ Modifier `requirements-ffbb.in`, installer la version dans un environnement isol
 puis examiner les changements de modèles et méthodes utilisés par l'importateur.
 Adapter aussi `clientVersion` dans `ffbb_import.py`, les tests et la documentation.
 Exécuter les suites hors réseau, puis un import réel et comparer les identifiants,
-scores, dates, volumes et avertissements. `standings[].rows` mérite une attention
-particulière puisqu'il suit directement les dataclasses du SDK.
+scores, dates, volumes et avertissements. Vérifier aussi les classements : leurs
+champs Directus sont listés dans `POOL_FIELDS`.
 
 ## 11. Tests et vérification
 
@@ -817,7 +870,8 @@ gestion ni de nouvelle architecture.
   compétition par une heuristique simple ; `displayTeams` reste la référence
   contrôlée pour les catégories de la page équipes.
 - **Versions.** Le client principal est fixé, mais ses dépendances transitives
-  peuvent varier. Les lignes de classement reflètent les modèles du SDK.
+  peuvent varier. Les classements sont lus directement dans Directus
+  (`POOL_FIELDS`) : un renommage de champ côté FFBB les rendrait incomplets.
 - **Publication distincte.** Le workflow actualise Git, pas l'hébergement.
   Une erreur de test ou de push empêche l'actualisation distante même si un import
   a réussi dans le répertoire temporaire du job.

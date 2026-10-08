@@ -8,11 +8,11 @@ Le client est injecté dans import_calendar pour permettre les tests hors résea
 import json
 import logging
 import sys
-from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urljoin, urlparse
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from ffbb_api_client_v2 import FFBBAPIClientV2, TokenManager
@@ -95,13 +95,40 @@ def club_side(match, club_id):
     raise ValueError(f"Rencontre hors du club : {match.id}")
 
 
-def normalize_match(match, team, club_id, location):
+def fetch_logos(client, club, organisme_ids, warnings):
+    """Associer chaque club à l'identifiant UUID de son logo FFBB, ou None.
+
+    Les logos sont décoratifs : toute erreur devient un avertissement et ne bloque
+    jamais l'import des scores. Seul un UUID valide est conservé, car calendar.js
+    l'insère dans une URL https://api.ffbb.app/assets/<uuid>.
+    """
+    logos = {}
+    for organisme_id in sorted({str(i) for i in organisme_ids if i is not None}):
+        if organisme_id == str(club.id):
+            organisme = club
+        else:
+            try:
+                organisme = client.get_organisme(int(organisme_id))
+            except Exception as error:
+                warnings.append(f'get_organisme({organisme_id}) : logo indisponible ({error})')
+                organisme = None
+        logo = getattr(organisme, 'logo', None) if organisme and str(organisme.id) == organisme_id else None
+        try:
+            logos[organisme_id] = str(UUID(str(logo))) if logo else None
+        except ValueError:
+            logos[organisme_id] = None
+    return logos
+
+
+def normalize_match(match, team, club_id, location, logos=None):
     """Adapter un modèle SDK au contrat lu par calendar.js.
 
     Les scores restent dans l'ordre domicile/extérieur. Le statut joue contrôle
     leur publication ; None signifie inconnu, tandis que zéro reste un vrai score.
     Les liens de rencontre doivent appartenir au domaine officiel en HTTPS.
+    logos associe l'identifiant d'un club à l'UUID de son logo (voir fetch_logos).
     """
+    logos = logos or {}
     at_home, team_id = club_side(match, club_id)
     if team_id != team['id'] or not match.nomEquipe1 or not match.nomEquipe2:
         raise ValueError("Équipe de la rencontre invalide")
@@ -120,6 +147,8 @@ def normalize_match(match, team, club_id, location):
         'id': identifier(match.id), 'team': team['label'], 'teamId': team_id,
         'date': local_date(match.date_rencontre),
         'home': match.nomEquipe1, 'away': match.nomEquipe2, 'atHome': at_home,
+        'homeLogo': logos.get(str(match.idOrganismeEquipe1)),
+        'awayLogo': logos.get(str(match.idOrganismeEquipe2)),
         'played': match.joue,
         'homeScore': score(match.resultatEquipe1) if match.joue else None,
         'awayScore': score(match.resultatEquipe2) if match.joue else None,
@@ -129,12 +158,88 @@ def normalize_match(match, team, club_id, location):
     }
 
 
-def import_calendar(client, config):
+POOL_FIELDS = ','.join(['id', 'nom'] + [f'classements.{field}' for field in (
+    'position', 'points', 'matchJoues', 'gagnes', 'perdus', 'nuls', 'nombreForfaits',
+    'paniersMarques', 'paniersEncaisses', 'difference', 'horsClassement',
+    'idEngagement.id', 'idEngagement.nom', 'idEngagement.numeroEquipe',
+    'organisme.id', 'organisme.nom', 'organisme.logo')])
+
+
+def pool_reader(session, token, base_url):
+    """Lire une poule et son classement nommé directement dans Directus.
+
+    Le SDK 1.4.0 ne demande que les identifiants des équipes classées ; cette
+    requête ajoute leur nom et le logo du club. HTTP 403/404 renvoie None
+    (classement indisponible) ; toute autre erreur bloque l'import.
+    """
+    def read(pool_id):
+        response = session.get(f"{base_url.rstrip('/')}/items/ffbbserver_poules/{identifier(pool_id)}",
+                               params={'fields': POOL_FIELDS}, headers={'Authorization': f'Bearer {token}'},
+                               timeout=(10, 60))
+        if response.status_code in (403, 404):
+            return None
+        response.raise_for_status()
+        data = response.json().get('data')
+        if not isinstance(data, dict):
+            raise ValueError(f'Poule FFBB invalide : {pool_id}')
+        return data
+    return read
+
+
+def normalize_standings(rows, club_id):
+    """Adapter les lignes Directus (valeurs textuelles) au contrat des pages équipe.
+
+    Les compteurs deviennent des entiers (vide = 0), le logo un UUID ou None,
+    et isAst repère le club par identifiant. Sans engagement, le nom du club est
+    utilisé. Tri par position, puis par nom.
+    """
+    def number(value, required=False):
+        if value in (None, ''):
+            if required:
+                raise ValueError('Position de classement absente')
+            return 0
+        text = str(value).strip()
+        if not text.lstrip('-').isdigit():
+            raise ValueError(f'Valeur de classement invalide : {value}')
+        return int(text)
+    result = []
+    for row in rows:
+        engagement = row.get('idEngagement') or {}
+        organisme = row.get('organisme') or {}
+        if not isinstance(engagement, dict) or not isinstance(organisme, dict):
+            raise ValueError('Ligne de classement invalide')
+        name = (engagement.get('nom') or '').strip()
+        suffix = str(engagement.get('numeroEquipe') or '').strip()
+        try:
+            logo = str(UUID(str(organisme['logo']))) if organisme.get('logo') else None
+        except ValueError:
+            logo = None
+        result.append({
+            'position': number(row.get('position'), required=True),
+            # Certaines poules (coupes, plateaux) ne relient que le club : son nom sert de repli.
+            'team': f'{name} - {suffix}' if name and suffix else name or (organisme.get('nom') or '').strip() or None,
+            'engagementId': str(engagement['id']) if engagement.get('id') else None,
+            'clubId': str(organisme['id']) if organisme.get('id') else None,
+            'logo': logo,
+            'isAst': str(organisme.get('id')) == str(club_id),
+            'points': number(row.get('points')), 'played': number(row.get('matchJoues')),
+            'won': number(row.get('gagnes')), 'lost': number(row.get('perdus')),
+            'draws': number(row.get('nuls')), 'forfeits': number(row.get('nombreForfaits')),
+            'scored': number(row.get('paniersMarques')), 'conceded': number(row.get('paniersEncaisses')),
+            'difference': number(row.get('difference')),
+            'outOfRanking': row.get('horsClassement') in (True, 'true', '1', 1),
+        })
+    return sorted(result, key=lambda r: (r['position'], r['team'] or ''))
+
+
+def import_calendar(client, config, read_pool=None):
     """Construire et valider l'instantané complet avant tout enregistrement.
 
     Étapes : club/saisons, rencontres paginées, engagements, métadonnées, scores,
     classements. Toute exception remonte au lanceur ; aucune sortie partielle
     n'est émise. warnings décrit seulement les métadonnées annexes indisponibles.
+    read_pool(pool_id) lit un classement (voir pool_reader) ; sans lui, les
+    classements sont marqués indisponibles.
     """
     warnings = []
     club_id = config['club']['id']
@@ -221,24 +326,28 @@ def import_calendar(client, config):
         if salle and str(salle.id) != str(salle_id):
             raise ValueError(f"Salle FFBB invalide : {salle_id}")
         salles[salle_id] = salle.libelle if salle else None
+    # Lire une fois le logo de chaque club rencontré, AST compris.
+    logos = fetch_logos(client, club, {i for m in raw_matches for i in (m.idOrganismeEquipe1, m.idOrganismeEquipe2)}, warnings)
     matches = []
     for match in raw_matches:
         team_id = club_side(match, club_id)[1]
         if team_id not in teams:
             raise ValueError("Rencontre sans engagement actif")
         team = teams[team_id]
-        matches.append(normalize_match(match, team, club_id, salles.get(match.salle)))
+        matches.append(normalize_match(match, team, club_id, salles.get(match.salle), logos))
         team['count'] += 1
-    # Les classements sont conservés pour un futur affichage. Leur structure rows
-    # dépend des modèles du SDK ; une poule inaccessible est marquée available=False.
+    # Classements affichés par les pages équipe ; une poule inaccessible est
+    # marquée available=False sans bloquer les scores (voir read_pool).
     standings = []
     for pool_id in sorted({m['pouleId'] for m in matches if m['pouleId']}):
-        pool = fetch_detail(client.get_poule, int(pool_id), warnings, deep_rencontres_limit=0)
-        if pool and str(pool.id) != pool_id:
+        pool = read_pool(pool_id) if read_pool else None
+        if read_pool and pool is None:
+            warnings.append(f'poule({pool_id}) : classement indisponible')
+        if pool and str(pool.get('id')) != pool_id:
             raise ValueError(f"Poule FFBB invalide : {pool_id}")
-        standings.append({'id': pool_id, 'name': pool.nom if pool else None,
+        standings.append({'id': pool_id, 'name': pool.get('nom') if pool else None,
                           'available': pool is not None,
-                          'rows': [asdict(row) for row in pool.classements or []] if pool else []})
+                          'rows': normalize_standings(pool.get('classements') or [], club_id) if pool else []})
     return {
         'updatedAt': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'source': config['club']['url'], 'sourceType': 'api', 'api': config['baseUrl'],
@@ -266,7 +375,7 @@ def main():
     )
     # Le client avertit pour des champs annexes que le calendrier n'utilise pas.
     logging.getLogger('ffbb_api_client_v2.utils.converter_utils').setLevel(logging.ERROR)
-    data = import_calendar(client, config)
+    data = import_calendar(client, config, pool_reader(session, tokens.api_token, config['baseUrl']))
     print(json.dumps(data, ensure_ascii=False))
 
 

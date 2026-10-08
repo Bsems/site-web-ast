@@ -22,14 +22,14 @@ signalées dans `warnings` ; les classements concernés portent `available: fals
 Les autres erreurs, notamment réseau, authentification 401 et serveur, bloquent l’import.
 
 Toutes les compétitions retournées pour le club sont incluses, y compris les
-coupes. Les classements disponibles sont conservés dans le JSON pour une future
-présentation. Les libellés longs proviennent de l’API ; les libellés courts peuvent
+coupes. Les classements de chaque poule sont lus directement dans Directus, avec
+le nom des équipes et le logo des clubs, puis affichés sur les pages équipe. Les libellés longs proviennent de l’API ; les libellés courts peuvent
 être ajustés dans `teamLabels` sans modifier le HTML.
 
 La page équipes utilise la liste `displayTeams` de la configuration : une entrée
 par équipe réelle, avec son nom, sa catégorie et l’identifiant de son engagement
 principal, facultatif, pour le lien FFBB. Sans identifiant ou correspondance dans
-l’API, l’équipe reste affichée sans lien. Conserver les libellés historiques et
+l’API, l’équipe reste affichée et sa page n’a ni classement ni matchs. Conserver les libellés historiques et
 les jeunes de U13 à U18, même sans compétition retrouvée. Les U11 sont dans l’école
 de basket. Elle n’affiche pas les compétitions ni les engagements
 supplémentaires en coupe. Actualiser cette liste si les équipes du club changent.
@@ -69,6 +69,12 @@ détermine si un score peut être affiché : les faux 0–0 futurs sont masqués
 vrais scores nuls conservés. Les scores absents ou `None` restent indisponibles.
 Le lien individuel FFBB du match est utilisé lorsqu’il est disponible, sinon le
 lien officiel de l’engagement ou du club.
+
+Le logo de chaque club rencontré est lu une fois par import via `get_organisme`
+et enregistré par son UUID (`homeLogo`, `awayLogo`). Les logos sont décoratifs :
+une erreur de lecture devient un avertissement et ne bloque jamais les scores.
+Le navigateur charge une miniature publique depuis `https://api.ffbb.app/assets/`
+et affiche les initiales du club si le logo manque.
 
 La date d’import figure sous le calendrier. Après 48 heures, un message indique
 que des résultats récents peuvent manquer.
