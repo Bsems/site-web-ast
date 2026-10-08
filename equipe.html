@@ -4,8 +4,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Les équipes — AST Basket." />
-    <title>AST Basket | Les équipes</title>
+    <meta name="description" content="Équipe de l’AST Basket : classement, calendrier, résultats et effectif." />
+    <title>AST Basket | Équipe</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="inner-page">
@@ -56,44 +56,16 @@
     </header>
     <!-- Contenu propre à cette page, cible du lien d’évitement. -->
     <main id="main-content">
-      <!-- Section de contenu reliée à son titre accessible : teams-title. -->
-      <section id="equipes" class="teams section-padding" aria-labelledby="teams-title">
-        <div class="section-heading">
-          <div class="section-label section-label--light"><span>02</span> Nos équipes</div>
-          <h1 id="teams-title">Un maillot.<br /><em>Tous les âges.</em></h1>
+      <!-- Page commune aux équipes : equipe.js la remplit selon ?equipe=<slug> (displayTeams). -->
+      <section class="team-page section-padding" aria-labelledby="team-title">
+        <a class="team-back" href="equipes.html"><span aria-hidden="true">←</span> Toutes les équipes</a>
+        <p class="eyebrow" id="team-category">Les équipes</p>
+        <h1 id="team-title">Équipe</h1>
+        <p class="page-description" id="team-competition"></p>
+        <div id="team-content">
+          <p>Chargement de l’équipe…</p>
+          <noscript><p>Activez JavaScript pour afficher la page de l’équipe, ou consultez les équipes sur la FFBB.</p></noscript>
         </div>
-        <div class="team-grid team-categories">
-          <article class="school-category" aria-labelledby="school-title">
-            <p class="team-number">01</p>
-            <h2 id="school-title"><a class="school-category-link" href="ecole-de-basket.html">École de basket <span aria-hidden="true">↗</span></a></h2>
-            <p class="team-description">Dès 3 ans et jusqu’en U11, l’école de basket accompagne les enfants dans leurs premiers dribbles. Du micro-basket au mini-basket, ils développent leur motricité, découvrent les bases du jeu et apprennent à jouer ensemble dans un cadre ludique et adapté à leur âge.</p>
-          </article>
-          <article aria-labelledby="young-title">
-            <p class="team-number">02</p>
-            <h2 id="young-title">Jeunes</h2>
-            <p class="team-description">De U13 à U18, grandir dans le jeu et relever les défis ensemble.</p>
-            <ul class="category-team-list" data-ffbb-category="young">
-              <li><a href="equipe.html?equipe=rf-u13"><strong>RF U13</strong></a></li>
-              <li><a href="equipe.html?equipe=nf-u15-elite"><strong>NF U15 Élite</strong></a></li>
-              <li><a href="equipe.html?equipe=rf-u15"><strong>RF U15</strong></a></li>
-              <li><a href="equipe.html?equipe=nf-u18-elite"><strong>NF U18 Élite</strong></a></li>
-              <li><a href="equipe.html?equipe=rf-u18"><strong>RF U18</strong></a></li>
-            </ul>
-          </article>
-          <article aria-labelledby="senior-title">
-            <p class="team-number">03</p>
-            <h2 id="senior-title">Séniors</h2>
-            <p class="team-description">Jouer avec engagement, ambition et le goût de la compétition.</p>
-            <ul class="category-team-list" data-ffbb-category="senior">
-              <li><a href="equipe.html?equipe=nf2"><strong>NF2</strong></a></li>
-              <li><a href="equipe.html?equipe=rf2"><strong>RF2</strong></a></li>
-              <li><a href="equipe.html?equipe=df3"><strong>DF3</strong></a></li>
-              <li><a href="equipe.html?equipe=rm3"><strong>RM3</strong></a></li>
-              <li><a href="equipe.html?equipe=dm3"><strong>DM3</strong></a></li>
-            </ul>
-          </article>
-        </div>
-        <a class="button button-outline" href="https://competitions.ffbb.com/ligues/occ/comites/0031/clubs/occ0031039" target="_blank" rel="noopener noreferrer">Voir les équipes sur la FFBB <span aria-hidden="true">→</span></a>
       </section>
     </main>
     <!-- Pied de page commun : liens utiles, réseaux sociaux et copyright. -->
@@ -108,5 +80,10 @@
     </footer>
     <!-- Interactions communes chargées après le HTML pour accéder aux éléments du menu. -->
     <script src="script.js"></script>
+    <!-- Données, puis calendar.js (fiches de match partagées), puis la page équipe. -->
+    <script src="data/calendar-data.js"></script>
+    <script src="data/equipes-data.js"></script>
+    <script src="calendar.js"></script>
+    <script src="equipe.js"></script>
   </body>
 </html>

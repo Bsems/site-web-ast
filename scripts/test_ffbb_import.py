@@ -12,7 +12,7 @@ from unittest.mock import Mock
 
 from ffbb_api_client_v2.directus_ffbb.models.get_rencontres_response import GetRencontresResponse
 from ffbb_api_client_v2.exceptions import FFBBAuthError, FFBBServerError
-from ffbb_import import import_calendar, local_date, normalize_match, validate_response, MAX_ITEMS
+from ffbb_import import import_calendar, local_date, normalize_match, normalize_standings, pool_reader, validate_response, MAX_ITEMS
 
 CONFIG = {'club': {'id': 12343, 'code': 'OCC0031039', 'url': 'https://competitions.ffbb.com/clubs/ast'},
           'baseUrl': 'https://api.ffbb.app', 'teamLabels': {'10': 'NF2'}}
@@ -44,8 +44,21 @@ def client():
                                                 idPoule=20, numeroEquipe=1)]
     api.get_competition.return_value = Obj(id='50', nom='Nationale féminine 2', saison=1037)
     api.get_salle.return_value = Obj(id='40', libelle='Gymnase')
-    api.get_poule.return_value = Obj(id='20', nom='A', classements=None)
     return api
+
+
+def pool(**changes):
+    """Simuler la réponse Directus d'une poule : valeurs textuelles comme l'API."""
+    rows = [
+        {'position': '2', 'points': '5', 'matchJoues': '3', 'gagnes': '2', 'perdus': '1', 'nuls': '',
+         'paniersMarques': '180', 'paniersEncaisses': '170', 'difference': '10',
+         'idEngagement': {'id': '10', 'nom': 'AS TOURNEFEUILLE', 'numeroEquipe': '1'},
+         'organisme': {'id': '12343', 'logo': '74983c7e-1f1f-4c55-8d28-d4cdc929448a'}},
+        {'position': '1', 'points': '6', 'matchJoues': '3', 'gagnes': '3', 'perdus': '0',
+         'difference': '-0', 'idEngagement': {'id': '90', 'nom': 'Adversaire', 'numeroEquipe': ''},
+         'organisme': {'id': '9', 'logo': None}},
+    ]
+    return {'id': '20', 'nom': 'Poule A', 'classements': rows} | changes
 
 
 class ImportTests(unittest.TestCase):
@@ -81,6 +94,7 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(data['matches'][0]['awayScore'], 20)
         self.assertEqual(data['teams'][0]['count'], 1)
         self.assertEqual(data['standings'][0]['rows'], [])
+        self.assertFalse(data['standings'][0]['available'])
         query = json.loads(api.list_all_engagements.call_args.kwargs['filter_criteria'])
         self.assertEqual(query, {'id': {'_in': ['10']}})
         self.assertEqual(api.list_all_rencontres.call_args.kwargs['sort'], ['id'])
@@ -122,9 +136,9 @@ class ImportTests(unittest.TestCase):
     def test_removed_metadata_does_not_hide_published_results(self):
         # Tolérer les seuls détails 403/404, tout en conservant les scores publiés.
         api = client()
-        for method in [api.get_competition, api.get_poule, api.get_salle]:
+        for method in [api.get_competition, api.get_salle]:
             method.side_effect = FFBBAuthError(status_code=403)
-        data = import_calendar(api, CONFIG)
+        data = import_calendar(api, CONFIG, read_pool=lambda pool_id: None)
         self.assertEqual(data['matches'][0]['awayScore'], 20)
         self.assertEqual(data['teams'][0]['label'], 'NF2')
         self.assertIsNone(data['matches'][0]['location'])
@@ -170,6 +184,42 @@ class ImportTests(unittest.TestCase):
                 result = import_calendar(api, CONFIG)['matches'][0]
                 self.assertIsNone(result['homeLogo'])
                 self.assertEqual(result['awayScore'], 20)
+
+    def test_standings_are_named_numeric_and_sorted(self):
+        data = import_calendar(client(), CONFIG, read_pool=lambda pool_id: pool())
+        standing = data['standings'][0]
+        self.assertTrue(standing['available'])
+        self.assertEqual(standing['name'], 'Poule A')
+        first, ast = standing['rows']
+        self.assertEqual((first['position'], first['team'], first['logo'], first['isAst']), (1, 'Adversaire', None, False))
+        self.assertEqual((ast['team'], ast['points'], ast['draws'], ast['difference']), ('AS TOURNEFEUILLE - 1', 5, 0, 10))
+        self.assertEqual(ast['logo'], '74983c7e-1f1f-4c55-8d28-d4cdc929448a')
+        self.assertTrue(ast['isAst'])
+
+    def test_invalid_standings_are_rejected(self):
+        for rows in [[{'position': ''}], [{'position': 'x'}], [{'position': '1', 'idEngagement': 5}]]:
+            with self.subTest(rows=rows), self.assertRaises(ValueError):
+                normalize_standings(rows, 12343)
+        club_only = normalize_standings([{'position': '1', 'organisme': {'id': '9', 'nom': 'CLUB VOISIN'}}], 12343)
+        self.assertEqual((club_only[0]['team'], club_only[0]['engagementId']), ('CLUB VOISIN', None))
+        with self.assertRaisesRegex(ValueError, 'Poule'):
+            import_calendar(client(), CONFIG, read_pool=lambda pool_id: pool(id='99'))
+
+    def test_pool_reader_tolerates_only_forbidden_or_missing(self):
+        def session(status, payload=None):
+            response = Mock(status_code=status)
+            response.json.return_value = payload
+            response.raise_for_status.side_effect = RuntimeError(f'HTTP {status}') if status >= 400 else None
+            return Mock(get=Mock(return_value=response))
+        self.assertIsNone(pool_reader(session(404), 't', 'https://api.ffbb.app')('20'))
+        self.assertEqual(pool_reader(session(200, {'data': pool()}), 't', 'https://api.ffbb.app')('20')['nom'], 'Poule A')
+        with self.assertRaisesRegex(RuntimeError, '503'):
+            pool_reader(session(503), 't', 'https://api.ffbb.app')('20')
+        reader = session(200, {'data': pool()})
+        pool_reader(reader, 'secret', 'https://api.ffbb.app/')('20')
+        url = reader.get.call_args.args[0]
+        self.assertEqual(url, 'https://api.ffbb.app/items/ffbbserver_poules/20')
+        self.assertIn('classements.idEngagement.nom', reader.get.call_args.kwargs['params']['fields'])
 
     def test_external_match_link_falls_back_to_official_team(self):
         result = normalize_match(match(url_competition='https://example.com'), TEAM, 12343, None)

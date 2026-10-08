@@ -292,3 +292,54 @@ a:focus-visible, button:focus-visible { outline: 2px solid #78a7ff; outline-offs
   .fixture-name { font-size: .72rem; }
   .fixture-score { padding: .45rem .6rem; }
 }
+
+/* Page équipe (equipe.js) : chiffres clés, sections, personnes et classement de la poule. */
+.team-page h1 { font-size: clamp(2.8rem, 6.5vw, 6.5rem); }
+.team-back { display: inline-flex; gap: .5rem; margin-bottom: 2rem; color: var(--blue); font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.team-back:hover { text-decoration: underline; text-underline-offset: .2em; }
+.team-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1rem; margin: 2.5rem 0 1rem; }
+.team-figure { display: grid; gap: .3rem; padding: 1.25rem; border: 1px solid var(--line); border-top: 5px solid var(--blue); border-radius: 14px; background: #fff; }
+.team-figure-label { color: #535b68; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.team-figure-value { color: var(--deep-blue); font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 900; line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.team-figure-detail { color: #535b68; font-size: .85rem; }
+.team-section { margin-top: 3.5rem; }
+.team-page .team-section-title { margin: 0 0 1.25rem; font-size: clamp(1.6rem, 3.5vw, 2.4rem); line-height: 1.1; letter-spacing: -.04em; }
+.team-photo { display: block; width: 100%; max-height: 32rem; object-fit: cover; border-radius: 14px; }
+.team-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.team-person { padding: 1.25rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: #fff; text-align: center; }
+.team-person-photo { display: grid; place-items: center; width: 6rem; height: 6rem; margin: 0 auto .9rem; border-radius: 50%; overflow: hidden; background: #edf3ff; }
+.team-person-photo img { width: 100%; height: 100%; object-fit: cover; }
+.team-person-photo .fixture-crest { width: 100%; height: 100%; padding: 0; box-shadow: none; }
+.team-person-name { margin: 0; color: var(--deep-blue); font-weight: 900; }
+.team-person-detail { margin: .35rem 0 0; color: #535b68; font-size: .85rem; }
+.team-match-date { margin: .75rem 0 -.4rem; color: var(--blue); font-size: .9rem; font-weight: 800; text-transform: capitalize; }
+.team-source { margin-top: 3rem; }
+/* Classement : défilement horizontal limité au tableau sur petit écran. */
+.standing-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.standing-scroll:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.standing-table { width: 100%; border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.standing-table caption { padding: 1rem 1.25rem; color: #535b68; font-size: .8rem; font-weight: 700; text-align: left; text-transform: uppercase; letter-spacing: .05em; }
+.standing-table th, .standing-table td { padding: .7rem .6rem; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.standing-table thead th { color: #535b68; background: #f7f9fd; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+.standing-table abbr { text-decoration: none; }
+.standing-table .standing-pos { width: 2.5rem; padding-left: 1.25rem; text-align: left; font-weight: 900; color: var(--deep-blue); }
+.standing-table .standing-team { width: 100%; text-align: left; font-weight: 600; white-space: normal; }
+.standing-team-label { display: flex; align-items: center; gap: .65rem; min-width: 12rem; }
+.standing-team-label .fixture-crest { flex-shrink: 0; width: 2.1rem; height: 2.1rem; padding: .2rem; box-shadow: 0 0 0 1px var(--line); }
+.standing-team-label .fixture-initials { font-size: .7rem; }
+.standing-table .standing-points { color: var(--deep-blue); font-weight: 900; }
+.standing-table td:last-child, .standing-table th:last-child { padding-right: 1.25rem; }
+.standing-table tbody tr:hover { background: #f7f9fd; }
+.standing-table tr.is-ast { background: #e5edff; }
+.standing-table tr.is-ast th, .standing-table tr.is-ast td { color: var(--deep-blue); font-weight: 900; }
+.standing-table tr.is-ast .standing-pos { box-shadow: inset 4px 0 0 var(--blue); }
+@media (max-width: 720px) {
+  .team-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .standing-table { font-size: .82rem; }
+  .standing-table .standing-scored, .standing-table .standing-conceded { display: none; }
+  .standing-table th, .standing-table td { padding: .6rem .35rem; }
+  .standing-table .standing-pos { width: 2rem; padding-left: .75rem; }
+  .standing-team-label { min-width: 0; gap: .45rem; font-size: .75rem; }
+  .standing-team-label .fixture-crest { width: 1.6rem; height: 1.6rem; padding: .1rem; }
+  .standing-table td:last-child, .standing-table th:last-child { padding-right: .75rem; }
+}

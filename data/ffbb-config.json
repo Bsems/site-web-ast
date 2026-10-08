@@ -7,16 +7,16 @@
     "id": 12343
   },
   "displayTeams": [
-    { "engagementId": "200000005336923", "name": "RF U13", "category": "young" },
-    { "engagementId": "200000005335026", "name": "NF U15 Élite", "category": "young" },
-    { "engagementId": "200000005338304", "name": "RF U15", "category": "young" },
-    { "engagementId": "200000005335063", "name": "NF U18 Élite", "category": "young" },
-    { "engagementId": "200000005338389", "name": "RF U18", "category": "young" },
-    { "engagementId": "200000005334817", "name": "NF2", "category": "senior" },
-    { "engagementId": "200000005336628", "name": "RF2", "category": "senior" },
-    { "engagementId": "200000005338119", "name": "DF3", "category": "senior" },
-    { "engagementId": "200000005337216", "name": "RM3", "category": "senior" },
-    { "engagementId": "200000005338098", "name": "DM3", "category": "senior" }
+    { "engagementId": "200000005336923", "slug": "rf-u13", "name": "RF U13", "category": "young" },
+    { "engagementId": "200000005335026", "slug": "nf-u15-elite", "name": "NF U15 Élite", "category": "young" },
+    { "engagementId": "200000005338304", "slug": "rf-u15", "name": "RF U15", "category": "young" },
+    { "engagementId": "200000005335063", "slug": "nf-u18-elite", "name": "NF U18 Élite", "category": "young" },
+    { "engagementId": "200000005338389", "slug": "rf-u18", "name": "RF U18", "category": "young" },
+    { "engagementId": "200000005334817", "slug": "nf2", "name": "NF2", "category": "senior" },
+    { "engagementId": "200000005336628", "slug": "rf2", "name": "RF2", "category": "senior" },
+    { "engagementId": "200000005338119", "slug": "df3", "name": "DF3", "category": "senior" },
+    { "engagementId": "200000005337216", "slug": "rm3", "name": "RM3", "category": "senior" },
+    { "engagementId": "200000005338098", "slug": "dm3", "name": "DM3", "category": "senior" }
   ],
   "teamLabels": {
     "200000005334817": "NF2",

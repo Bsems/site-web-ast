@@ -97,3 +97,18 @@ test('API snapshot and local export agree and preserve score orientation', async
   assert.equal(recent.date, '2026-10-03T17:00:00');
   assert.equal(calendar.result(recent, '2026-10-05'), '78 – 46');
 });
+// Pages équipe : une entrée par displayTeams, slug unique, lien interne et contenu vide toléré.
+test('Team pages export one linked entry per displayed team', async () => {
+  const context = { window: {} };
+  vm.runInNewContext(await readFile(new URL('../data/equipes-data.js', import.meta.url), 'utf8'), context);
+  const teams = JSON.parse(JSON.stringify(context.window.AST_TEAMS));
+  const config = JSON.parse(await readFile(new URL('../data/ffbb-config.json', import.meta.url), 'utf8'));
+  const html = await readFile(new URL('../equipes.html', import.meta.url), 'utf8');
+  assert.deepEqual(teams.map(team => team.slug), config.displayTeams.map(team => team.slug));
+  assert.equal(new Set(teams.map(team => team.slug)).size, teams.length);
+  for (const team of teams) {
+    assert.match(team.slug, /^[a-z0-9]+(-[a-z0-9]+)*$/);
+    assert.ok(Array.isArray(team.staff) && Array.isArray(team.roster));
+    assert.ok(html.includes(`href="equipe.html?equipe=${team.slug}"`), `Lien manquant pour ${team.slug}`);
+  }
+});

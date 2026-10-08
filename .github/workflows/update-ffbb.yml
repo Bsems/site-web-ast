@@ -30,10 +30,10 @@ jobs:
       - run: python -m unittest discover -s scripts -p "test_*.py"
       - run: node scripts/update-calendar.mjs
       - run: node --test scripts/calendar.test.mjs scripts/permanences.test.mjs
-      # Versionner seulement les trois sorties ; un push refusé n'est jamais forcé.
+      # Versionner seulement les sorties générées ; un push refusé n'est jamais forcé.
       - name: Enregistrer les données actualisées
         run: |
-          git add data/calendar.json data/calendar-data.js equipes.html
+          git add data/calendar.json data/calendar-data.js data/equipes-data.js equipes.html
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

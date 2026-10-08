@@ -6,9 +6,11 @@ BACKLOG — PROJET AST
     Publier et activer le workflow d’actualisation préparé dans le dépôt.
     Raccorder les mises à jour des données au déploiement de l’hébergement retenu.
 
-[ ] Présentation des classements
-    Les classements sont désormais récupérés par l’API et stockés dans le JSON.
-    Définir leur présentation sur le site.
+[x] Présentation des classements
+    Tableau complet de la poule sur chaque page équipe (equipe.html).
+
+[ ] Contenu des pages équipe
+    Renseigner photo d’équipe, staff et effectif dans data/equipes.json.
 
 [ ] Gestion des permanences du club
     Définir comment les responsables pourront ajouter une permanence au calendrier.
