@@ -45,6 +45,22 @@ def error_codes(payload):
     return codes
 
 
+def response_markers(response):
+    """Marqueurs de protection uniquement ; ne jamais publier le corps distant."""
+    headers = getattr(response, 'headers', {})
+    allowed = ('server', 'content-type', 'cf-ray', 'cf-mitigated', 'retry-after',
+               'x-sucuri-id', 'x-sucuri-block', 'x-cache', 'via')
+    selected = {key: str(headers[key])[:160] for key in allowed if key in headers}
+    body = getattr(response, 'text', '')[:65536].lower()
+    markers = [marker for marker in (
+        'cloudflare', 'cf-chl-', 'just a moment', 'attention required',
+        'access denied', 'request blocked', 'captcha', 'datadome',
+        'incapsula', 'imperva', 'sucuri', 'varnish', 'rate limit',
+        'too many requests', 'geo', 'forbidden',
+    ) if marker in body]
+    return {'headers': selected, 'markers': markers}
+
+
 def diagnose_response(response, **kwargs):
     """Observer les refus sans afficher Authorization, cookies ou paramètres."""
     if response.status_code < 400:
@@ -56,7 +72,8 @@ def diagnose_response(response, **kwargs):
         payload = None
     diagnostic('http_error', url=f'{parsed.scheme}://{parsed.hostname}{parsed.path}',
                status=response.status_code, codes=error_codes(payload),
-               format='json' if payload is not None else 'non-json')
+               format='json' if payload is not None else 'non-json',
+               **response_markers(response))
 
 
 def run_stage(name, operation):

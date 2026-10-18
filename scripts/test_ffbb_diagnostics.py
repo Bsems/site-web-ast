@@ -6,10 +6,20 @@ from contextlib import redirect_stderr
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-from ffbb_import import diagnose_response, run_stage
+from ffbb_import import diagnose_response, run_stage, response_markers
 
 
 class DiagnosticsTests(unittest.TestCase):
+    def test_protection_markers_without_raw_body_or_cookies(self):
+        response = SimpleNamespace(
+            headers={'server': 'cloudflare', 'cf-ray': '123-CDG',
+                     'cf-mitigated': 'challenge', 'set-cookie': 'SECRET'},
+            text='<title>Just a moment...</title> cf-chl- SECRET')
+        result = response_markers(response)
+        self.assertEqual(result['headers']['cf-mitigated'], 'challenge')
+        self.assertIn('cf-chl-', result['markers'])
+        self.assertNotIn('SECRET', json.dumps(result))
+
     def test_refusal_without_credentials_or_body(self):
         response = SimpleNamespace(
             status_code=403,
