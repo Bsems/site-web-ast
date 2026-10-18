@@ -81,6 +81,15 @@ que des résultats récents peuvent manquer.
 
 ## Actualisation programmée
 
+Les journaux `[FFBB]` sur stderr distinguent la récupération des jetons (`tokens`)
+de l'import (`calendar`). En cas de refus pendant l'import, ils indiquent l'URL
+sans paramètres ni identifiants, le statut HTTP, les codes techniques Directus
+et le format JSON ou non-JSON de la réponse. Les corps, messages distants,
+en-têtes d'authentification et cookies ne sont pas affichés. La récupération
+des jetons utilise une session interne au SDK : ses erreurs indiquent l'étape,
+le type d'exception, le statut et les codes disponibles, sans URL de requête.
+Un échec conserve les données précédentes et reste un échec GitHub Actions.
+
 Le workflow `.github/workflows/update-ffbb.yml` prévoit sur GitHub Actions :
 deux imports par jour (07 h et 19 h UTC) et lancement manuel possible.
 Il installe Node, Python et le client, teste l’importateur, importe puis vérifie les

@@ -7,6 +7,7 @@ Le client est injecté dans import_calendar pour permettre les tests hors résea
 """
 import json
 import logging
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +24,52 @@ from requests_cache import CachedSession
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_ITEMS = 10000
+
+
+def diagnostic(event, **details):
+    """Une ligne JSON sur stderr, jamais dans les données publiées."""
+    print('[FFBB] ' + json.dumps({'event': event, **details}, ensure_ascii=True),
+          file=sys.stderr, flush=True)
+
+
+def error_codes(payload):
+    """Ne conserver que les codes techniques, jamais le corps ou les messages."""
+    if not isinstance(payload, dict) or not isinstance(payload.get('errors'), list):
+        return []
+    codes = []
+    for item in payload['errors'][:10]:
+        extensions = item.get('extensions') if isinstance(item, dict) else None
+        code = extensions.get('code') if isinstance(extensions, dict) else None
+        if isinstance(code, str) and re.fullmatch(r'[A-Z][A-Z0-9_]{0,63}', code):
+            codes.append(code)
+    return codes
+
+
+def diagnose_response(response, **kwargs):
+    """Observer les refus sans afficher Authorization, cookies ou paramètres."""
+    if response.status_code < 400:
+        return
+    parsed = urlparse(response.url)
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = None
+    diagnostic('http_error', url=f'{parsed.scheme}://{parsed.hostname}{parsed.path}',
+               status=response.status_code, codes=error_codes(payload),
+               format='json' if payload is not None else 'non-json')
+
+
+def run_stage(name, operation):
+    diagnostic('stage_start', stage=name)
+    try:
+        result = operation()
+    except Exception as error:
+        diagnostic('stage_failed', stage=name, exception=type(error).__name__,
+                   status=getattr(error, 'status_code', None),
+                   codes=error_codes(getattr(error, 'response_body', None)))
+        raise
+    diagnostic('stage_done', stage=name)
+    return result
 
 
 def fetch_detail(method, item_id, warnings, **kwargs):
@@ -366,8 +413,8 @@ def main():
     cache = CacheConfig(enabled=False, backend='memory')
     session = CachedSession(backend='memory', expire_after=0)
     # Le hook vérifie aussi les pages internes récupérées par list_all_* du SDK.
-    session.hooks['response'].append(validate_response)
-    tokens = TokenManager.get_tokens(cache_config=cache)
+    session.hooks['response'].extend([diagnose_response, validate_response])
+    tokens = run_stage('tokens', lambda: TokenManager.get_tokens(cache_config=cache))
     client = FFBBAPIClientV2.create(
         api_bearer_token=tokens.api_token, meilisearch_bearer_token=tokens.meilisearch_token,
         cached_session=session, directus_retry_config=RetryConfig(max_attempts=3),
@@ -375,7 +422,8 @@ def main():
     )
     # Le client avertit pour des champs annexes que le calendrier n'utilise pas.
     logging.getLogger('ffbb_api_client_v2.utils.converter_utils').setLevel(logging.ERROR)
-    data = import_calendar(client, config, pool_reader(session, tokens.api_token, config['baseUrl']))
+    data = run_stage('calendar', lambda: import_calendar(
+        client, config, pool_reader(session, tokens.api_token, config['baseUrl'])))
     print(json.dumps(data, ensure_ascii=False))
 
 
@@ -383,5 +431,6 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as error:
-        print(f"Import FFBB impossible : {error}. Données précédentes conservées.", file=sys.stderr)
+        print(f"Import FFBB impossible ({type(error).__name__}). Voir les diagnostics [FFBB]. "
+              "Données précédentes conservées.", file=sys.stderr)
         sys.exit(1)

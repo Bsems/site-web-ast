@@ -19,10 +19,11 @@ try {
    * stdout doit contenir uniquement le JSON ; les diagnostics Python vont sur stderr.
    * UTF-8 est explicite sous Windows ; l'import est limité à 12 min et 20 Mio.
    */
-  const { stdout } = await promisify(execFile)(python, [fileURLToPath(new URL('scripts/ffbb_import.py', root))], {
+  const { stdout, stderr } = await promisify(execFile)(python, [fileURLToPath(new URL('scripts/ffbb_import.py', root))], {
     cwd: fileURLToPath(root), env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
     maxBuffer: 20 * 1024 * 1024, timeout: 12 * 60 * 1000,
   });
+  if (stderr) process.stderr.write(stderr);
   const data = JSON.parse(stdout);
   if (!data.matches?.length || !data.teams?.length || data.client !== 'ffbb-api-client-v2') throw new Error('Import FFBB invalide.');
   /*
