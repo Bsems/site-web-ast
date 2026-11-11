@@ -33,7 +33,8 @@ class DiagnosticsTests(unittest.TestCase):
         event = json.loads(output.getvalue().removeprefix('[FFBB] '))
         self.assertEqual(event['codes'], ['FORBIDDEN'])
         self.assertEqual(event['status'], 403)
-        self.assertEqual(event['url'], 'https://api.ffbb.app/items/organismes/12343')
+        self.assertEqual(event['url'], 'https://api.ffbb.app/items/organismes/{id}')
+        self.assertNotIn('12343', output.getvalue())
         for secret in ('SECRET', 'password', 'Bearer', 'access_token'):
             self.assertNotIn(secret, output.getvalue())
 
