@@ -16,9 +16,11 @@ Les scores sont présents directement sur ces rencontres. Les engagements sont
 l’union de ceux de la fiche club et de ceux des matchs. Certaines anciennes
 phases ne figurent plus dans la collection des engagements : leurs matchs restent
 importés grâce aux identifiants de club, d’engagement et de compétition du match.
-Les métadonnées annexes supprimées ou non publiées (HTTP 403/404 sur compétition,
-salle ou poule) ne masquent pas les scores accessibles. Elles restent vides et
-signalées dans `warnings` ; les classements concernés portent `available: false`.
+Les métadonnées annexes supprimées, non publiées ou limitées par l'API (HTTP
+403/404/429 sur compétition, organisme ou poule) ne masquent pas les scores accessibles.
+Elles restent vides et signalées dans `warnings` ; les classements concernés
+portent `available: false`. Les erreurs sur les données essentielles (saisons,
+rencontres ou engagements) bloquent l'import.
 Les autres erreurs, notamment réseau, authentification 401 et serveur, bloquent l’import.
 
 Toutes les compétitions retournées pour le club sont incluses, y compris les
@@ -70,9 +72,13 @@ vrais scores nuls conservés. Les scores absents ou `None` restent indisponibles
 Le lien individuel FFBB du match est utilisé lorsqu’il est disponible, sinon le
 lien officiel de l’engagement ou du club.
 
-Le logo de chaque club rencontré est lu une fois par import via `get_organisme`
-et enregistré par son UUID (`homeLogo`, `awayLogo`). Les logos sont décoratifs :
-une erreur de lecture devient un avertissement et ne bloque jamais les scores.
+Les noms et logos des adversaires sont d'abord récupérés depuis les engagements
+et les relations des poules. Une recherche groupée des organismes complète les
+noms manquants ; les noms du dernier instantané local servent ensuite de repli
+pour un match déjà connu. Si l'API ne fournit toujours aucun nom, l'import garde
+la rencontre avec le libellé explicite `Équipe non renseignée (FFBB <id>)` et
+émet un avertissement. Les logos disponibles sont enregistrés par UUID
+(`homeLogo`, `awayLogo`) ; leur absence ne bloque pas les scores.
 Le navigateur charge une miniature publique depuis `https://api.ffbb.app/assets/`
 et affiche les initiales du club si le logo manque.
 
@@ -89,6 +95,20 @@ en-têtes d'authentification et cookies ne sont pas affichés. La récupération
 des jetons utilise une session interne au SDK : ses erreurs indiquent l'étape,
 le type d'exception, le statut et les codes disponibles, sans URL de requête.
 Un échec conserve les données précédentes et reste un échec GitHub Actions.
+
+Pour reproduire le diagnostic localement sans modifier les fichiers du site :
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\diagnose_ffbb.py
+```
+
+Le diagnostic exécute l'import complet en mémoire et termine par `calendar_summary`
+si rencontres, équipes et classements ont été construits. `http_error` avec le
+statut 429 signale une limitation de débit FFBB ; les métadonnées annexes
+concernées peuvent être absentes dans cet import. `stage_failed` identifie l'étape
+bloquante. Le diagnostic ne met pas à jour `data/calendar.json` : pour recharger
+les données et générer les sorties, lancer `node scripts/update-calendar.mjs`
+après le diagnostic.
 
 Le workflow `.github/workflows/update-ffbb.yml` prévoit sur GitHub Actions :
 deux imports par jour (07 h et 19 h UTC) et lancement manuel possible.

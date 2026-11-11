@@ -9,6 +9,7 @@ import json
 import logging
 import re
 import sys
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -24,6 +25,7 @@ from requests_cache import CachedSession
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_ITEMS = 10000
+_reported_http_errors = set()
 
 
 def diagnostic(event, **details):
@@ -43,6 +45,71 @@ def error_codes(payload):
         if isinstance(code, str) and re.fullmatch(r'[A-Z][A-Z0-9_]{0,63}', code):
             codes.append(code)
     return codes
+
+
+def validation_summary(error):
+    """Expose Pydantic field paths and error codes, never rejected values/messages."""
+    errors = getattr(error, 'errors', None)
+    if not callable(errors):
+        return []
+    try:
+        items = errors(include_input=False, include_context=False, include_url=False)
+    except TypeError:
+        # Older Pydantic versions do not accept the privacy-related keyword args.
+        items = errors()
+    result = []
+    for item in items[:20]:
+        if not isinstance(item, dict):
+            continue
+        loc = []
+        for part in item.get('loc', ()):
+            value = str(part)
+            loc.append(value if re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,63}|[0-9]{1,12}', value) else '<field>')
+        code = item.get('type')
+        result.append({'loc': loc, 'type': code if isinstance(code, str) and re.fullmatch(r'[a-zA-Z0-9_.-]{1,80}', code) else 'unknown'})
+    return result
+
+
+def safe_error_reason(error):
+    """Map known validation messages to stable codes without exposing row values."""
+    if not isinstance(error, ValueError):
+        return None
+    message = str(error)
+    reasons = {
+        'Équipe de la rencontre invalide': 'invalid_match_team',
+        'Rencontre sans engagement actif': 'match_without_active_engagement',
+        'Rencontre FFBB dupliquée': 'duplicate_match',
+        'Rencontre d’une autre saison': 'match_from_other_season',
+        'Rencontre hors du club': 'match_not_associated_with_club',
+        'Date FFBB invalide': 'invalid_match_date',
+        'Import des engagements incomplet': 'incomplete_engagement_import',
+    }
+    if message in reasons:
+        return reasons[message]
+    if message.startswith('Statut joue inconnu'):
+        return 'unknown_match_played_status'
+    if message.startswith('Score FFBB invalide'):
+        return 'invalid_match_score'
+    if message.startswith('Identifiant FFBB invalide'):
+        return 'invalid_ffbb_identifier'
+    if message == 'Nom d’équipe FFBB absent':
+        return 'missing_match_team_name'
+    return None
+
+
+def load_previous_match_names():
+    """Read names from the last valid local snapshot for rare incomplete API rows."""
+    try:
+        snapshot = json.loads((ROOT / 'data/calendar.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+    matches = snapshot.get('matches', []) if isinstance(snapshot, dict) else []
+    if not isinstance(matches, list):
+        return {}
+    return {
+        str(match['id']): match for match in matches
+        if isinstance(match, dict) and match.get('id') is not None
+    }
 
 
 def response_markers(response):
@@ -70,10 +137,17 @@ def diagnose_response(response, **kwargs):
         payload = response.json()
     except ValueError:
         payload = None
-    diagnostic('http_error', url=f'{parsed.scheme}://{parsed.hostname}{parsed.path}',
-               status=response.status_code, codes=error_codes(payload),
-               format='json' if payload is not None else 'non-json',
-               **response_markers(response))
+    path = re.sub(r'/\d+(?=/|$)', '/{id}', parsed.path)
+    markers = response_markers(response)
+    codes = error_codes(payload)
+    response_format = 'json' if payload is not None else 'non-json'
+    signature = (parsed.hostname, path, response.status_code, tuple(codes), response_format,
+                 tuple(markers['markers']))
+    if signature in _reported_http_errors:
+        return
+    _reported_http_errors.add(signature)
+    diagnostic('http_error', url=f'{parsed.scheme}://{parsed.hostname}{path}',
+               status=response.status_code, codes=codes, format=response_format, **markers)
 
 
 def run_stage(name, operation):
@@ -81,9 +155,14 @@ def run_stage(name, operation):
     try:
         result = operation()
     except Exception as error:
+        origin = [{'file': Path(frame.filename).name, 'function': frame.name,
+                   'line': frame.lineno}
+                  for frame in traceback.extract_tb(error.__traceback__)[-8:]]
         diagnostic('stage_failed', stage=name, exception=type(error).__name__,
+                   exception_module=type(error).__module__, origin=origin,
                    status=getattr(error, 'status_code', None),
-                   codes=error_codes(getattr(error, 'response_body', None)))
+                   codes=error_codes(getattr(error, 'response_body', None)),
+                   validation=validation_summary(error), reason=safe_error_reason(error))
         raise
     diagnostic('stage_done', stage=name)
     return result
@@ -159,6 +238,103 @@ def club_side(match, club_id):
     raise ValueError(f"Rencontre hors du club : {match.id}")
 
 
+def id_filter_batches(item_ids, max_length=900):
+    """Build SDK-valid Directus ID filters below its 1000-character limit."""
+    batches = []
+    current = []
+    for item_id in sorted({str(value) for value in item_ids}):
+        candidate = current + [item_id]
+        criteria = json.dumps({'id': {'_in': candidate}})
+        if len(criteria) > max_length:
+            if not current:
+                raise ValueError('Identifiant trop long pour le filtre FFBB')
+            batches.append(json.dumps({'id': {'_in': current}}))
+            current = [item_id]
+        else:
+            current = candidate
+    if current:
+        batches.append(json.dumps({'id': {'_in': current}}))
+    return batches
+
+
+def fetch_engagements(client, engagement_ids):
+    """Read engagement records in SDK-valid batches."""
+    results = []
+    for criteria in id_filter_batches(engagement_ids):
+        results.extend(client.list_all_engagements(
+            filter_criteria=criteria, sort=['id'], page_size=100, max_items=MAX_ITEMS,
+        ))
+    return results
+
+
+def fetch_competitions(session, token, base_url, competition_ids, warnings):
+    """Fetch competition metadata in bounded batches to avoid per-item 429s."""
+    competitions = {}
+    unavailable = set()
+    base = f"{base_url.rstrip('/')}/items/ffbbserver_competitions"
+    for criteria in id_filter_batches(competition_ids):
+        requested_ids = set(json.loads(criteria)['id']['_in'])
+        response = session.get(
+            base,
+            params={'filter': criteria, 'fields': 'id,nom,saison',
+                    'limit': len(requested_ids), 'meta': 'filter_count'},
+            headers={'Authorization': f'Bearer {token}'}, timeout=(10, 60),
+        )
+        if response.status_code in (403, 404, 429):
+            unavailable.update(requested_ids)
+            warnings.append(
+                f'get_competition : métadonnées indisponibles (HTTP {response.status_code})')
+            continue
+        if response.status_code >= 400:
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = None
+            raise FFBBApiError('Competition batch request failed',
+                               status_code=response.status_code,
+                               response_body=payload if isinstance(payload, dict) else None)
+        payload = response.json()
+        rows = payload.get('data') if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            raise ValueError('Liste de compétitions FFBB invalide')
+        for row in rows:
+            if not isinstance(row, dict) or str(row.get('id')) not in requested_ids:
+                raise ValueError('Compétition FFBB invalide')
+            competitions[str(row['id'])] = SimpleNamespace(
+                id=str(row['id']), nom=row.get('nom'), saison=row.get('saison'))
+    for item_id in sorted({str(value) for value in competition_ids} - competitions.keys() - unavailable):
+        warnings.append(f'get_competition({item_id}) : métadonnées indisponibles')
+    return competitions
+
+
+def fetch_organism_names(session, token, base_url, organisme_ids, warnings):
+    """Fetch only missing club names in bounded requests as a final fallback."""
+    names = {}
+    endpoint = f"{base_url.rstrip('/')}/items/ffbbserver_organismes"
+    for criteria in id_filter_batches(organisme_ids):
+        requested_ids = set(json.loads(criteria)['id']['_in'])
+        response = session.get(
+            endpoint,
+            params={'filter': criteria, 'fields': 'id,nom',
+                    'limit': len(requested_ids), 'meta': 'filter_count'},
+            headers={'Authorization': f'Bearer {token}'}, timeout=(10, 60),
+        )
+        if response.status_code >= 400:
+            warnings.append(
+                f'get_organisme : noms indisponibles (HTTP {response.status_code})')
+            continue
+        payload = response.json()
+        rows = payload.get('data') if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            raise ValueError('Liste d’organismes FFBB invalide')
+        for row in rows:
+            if not isinstance(row, dict) or str(row.get('id')) not in requested_ids:
+                raise ValueError('Organisme FFBB invalide')
+            if row.get('nom'):
+                names[str(row['id'])] = row['nom']
+    return names
+
+
 def fetch_logos(client, club, organisme_ids, warnings):
     """Associer chaque club à l'identifiant UUID de son logo FFBB, ou None.
 
@@ -184,7 +360,8 @@ def fetch_logos(client, club, organisme_ids, warnings):
     return logos
 
 
-def normalize_match(match, team, club_id, location, logos=None):
+def normalize_match(match, team, club_id, location, logos=None, organism_names=None,
+                    engagement_names=None, engagement_logos=None, previous_names=None):
     """Adapter un modèle SDK au contrat lu par calendar.js.
 
     Les scores restent dans l'ordre domicile/extérieur. Le statut joue contrôle
@@ -193,9 +370,25 @@ def normalize_match(match, team, club_id, location, logos=None):
     logos associe l'identifiant d'un club à l'UUID de son logo (voir fetch_logos).
     """
     logos = logos or {}
+    organism_names = organism_names or {}
+    engagement_names = engagement_names or {}
+    engagement_logos = engagement_logos or {}
+    previous_names = previous_names or {}
     at_home, team_id = club_side(match, club_id)
-    if team_id != team['id'] or not match.nomEquipe1 or not match.nomEquipe2:
+    if team_id != team['id']:
         raise ValueError("Équipe de la rencontre invalide")
+    home_engagement = str(match.idEngagementEquipe1)
+    away_engagement = str(match.idEngagementEquipe2)
+    home = (match.nomEquipe1 or engagement_names.get(home_engagement)
+            or organism_names.get(str(match.idOrganismeEquipe1)) or previous_names.get('home'))
+    away = (match.nomEquipe2 or engagement_names.get(away_engagement)
+            or organism_names.get(str(match.idOrganismeEquipe2)) or previous_names.get('away'))
+    if not home:
+        home_id = match.idEngagementEquipe1 or match.idOrganismeEquipe1 or match.id
+        home = f'Équipe non renseignée (FFBB {home_id})'
+    if not away:
+        away_id = match.idEngagementEquipe2 or match.idOrganismeEquipe2 or match.id
+        away = f'Équipe non renseignée (FFBB {away_id})'
     if type(match.joue) is not bool:
         raise ValueError(f"Statut joue inconnu : {match.id}")
     def score(value):
@@ -210,9 +403,9 @@ def normalize_match(match, team, club_id, location, logos=None):
     return {
         'id': identifier(match.id), 'team': team['label'], 'teamId': team_id,
         'date': local_date(match.date_rencontre),
-        'home': match.nomEquipe1, 'away': match.nomEquipe2, 'atHome': at_home,
-        'homeLogo': logos.get(str(match.idOrganismeEquipe1)),
-        'awayLogo': logos.get(str(match.idOrganismeEquipe2)),
+        'home': home, 'away': away, 'atHome': at_home,
+        'homeLogo': engagement_logos.get(home_engagement) or logos.get(str(match.idOrganismeEquipe1)),
+        'awayLogo': engagement_logos.get(away_engagement) or logos.get(str(match.idOrganismeEquipe2)),
         'played': match.joue,
         'homeScore': score(match.resultatEquipe1) if match.joue else None,
         'awayScore': score(match.resultatEquipe2) if match.joue else None,
@@ -233,14 +426,14 @@ def pool_reader(session, token, base_url):
     """Lire une poule et son classement nommé directement dans Directus.
 
     Le SDK 1.4.0 ne demande que les identifiants des équipes classées ; cette
-    requête ajoute leur nom et le logo du club. HTTP 403/404 renvoie None
-    (classement indisponible) ; toute autre erreur bloque l'import.
+    requête ajoute leur nom et le logo du club. HTTP 403/404/429 renvoie None
+    (classement indisponible) ; les autres erreurs bloquent l'import.
     """
     def read(pool_id):
         response = session.get(f"{base_url.rstrip('/')}/items/ffbbserver_poules/{identifier(pool_id)}",
                                params={'fields': POOL_FIELDS}, headers={'Authorization': f'Bearer {token}'},
                                timeout=(10, 60))
-        if response.status_code in (403, 404):
+        if response.status_code in (403, 404, 429):
             return None
         response.raise_for_status()
         data = response.json().get('data')
@@ -296,14 +489,18 @@ def normalize_standings(rows, club_id):
     return sorted(result, key=lambda r: (r['position'], r['team'] or ''))
 
 
-def import_calendar(client, config, read_pool=None):
+def import_calendar(client, config, read_pool=None, read_competitions=None,
+                   read_opponent_engagements=None, read_organism_names=None,
+                   previous_matches=None):
     """Construire et valider l'instantané complet avant tout enregistrement.
 
     Étapes : club/saisons, rencontres paginées, engagements, métadonnées, scores,
     classements. Toute exception remonte au lanceur ; aucune sortie partielle
     n'est émise. warnings décrit seulement les métadonnées annexes indisponibles.
-    read_pool(pool_id) lit un classement (voir pool_reader) ; sans lui, les
-    classements sont marqués indisponibles.
+    read_pool(pool_id) lit un classement ; les callbacks optionnels
+    read_competitions(ids, warnings), read_opponent_engagements(ids) et
+    read_organism_names(ids, warnings) récupèrent les métadonnées annexes ;
+    previous_matches fournit les noms du dernier instantané comme dernier repli.
     """
     warnings = []
     club_id = config['club']['id']
@@ -335,13 +532,90 @@ def import_calendar(client, config, read_pool=None):
     roster_ids = {identifier(i) for i in club.engagements}
     engagement_ids = set(roster_ids)
     engagement_ids.update(club_side(m, club_id)[1] for m in raw_matches)
-    engagements = client.list_all_engagements(
-        filter_criteria=json.dumps({'id': {'_in': sorted(engagement_ids)}}),
-        sort=['id'], page_size=100, max_items=MAX_ITEMS,
-    )
+    engagements = fetch_engagements(client, engagement_ids)
     returned_ids = {str(e.id) for e in engagements}
     if len(returned_ids) != len(engagements) or not returned_ids <= engagement_ids or not roster_ids <= returned_ids:
         raise ValueError('Import des engagements incomplet')
+    opponent_ids = set()
+    for match in raw_matches:
+        opponent_id = match.idEngagementEquipe1 if str(match.idOrganismeEquipe1) != str(club_id) else match.idEngagementEquipe2
+        if opponent_id is not None:
+            opponent_ids.add(identifier(opponent_id))
+    if read_opponent_engagements and opponent_ids:
+        try:
+            opponent_engagements = read_opponent_engagements(opponent_ids)
+        except FFBBApiError as error:
+            if error.status_code != 429:
+                raise
+            warnings.append('Engagements adverses indisponibles (limitation FFBB, HTTP 429)')
+            opponent_engagements = []
+    else:
+        opponent_engagements = []
+    if any(str(item.id) not in opponent_ids for item in opponent_engagements):
+        raise ValueError('Engagement adverse FFBB invalide')
+    engagement_names = {}
+    engagement_logos = {}
+    for item in [*engagements, *opponent_engagements]:
+        item_id = str(item.id)
+        name = (getattr(item, 'nomEquipe', None) or getattr(item, 'nom', None)
+                or getattr(item, 'nomUsuel', None) or getattr(item, 'nomOfficiel', None))
+        if name:
+            engagement_names[item_id] = name
+        try:
+            logo = getattr(item, 'logo', None)
+            engagement_logos[item_id] = str(UUID(str(logo))) if logo else None
+        except ValueError:
+            engagement_logos[item_id] = None
+    for match in raw_matches:
+        if match.nomEquipe1:
+            engagement_names.setdefault(str(match.idEngagementEquipe1), match.nomEquipe1)
+        if match.nomEquipe2:
+            engagement_names.setdefault(str(match.idEngagementEquipe2), match.nomEquipe2)
+    organism_names = {}
+    missing_organism_ids = set()
+    for match in raw_matches:
+        if not (match.nomEquipe1 or engagement_names.get(str(match.idEngagementEquipe1))):
+            missing_organism_ids.add(str(match.idOrganismeEquipe1))
+        if not (match.nomEquipe2 or engagement_names.get(str(match.idEngagementEquipe2))):
+            missing_organism_ids.add(str(match.idOrganismeEquipe2))
+    if read_organism_names and missing_organism_ids:
+        organism_names = read_organism_names(missing_organism_ids, warnings)
+    logos = {}
+    pools = {}
+    if read_pool:
+        raw_pool_ids = sorted({identifier(m.idPoule) for m in raw_matches if m.idPoule})
+        for pool_id in raw_pool_ids:
+            pool = read_pool(pool_id)
+            pools[pool_id] = pool
+            if pool is None:
+                warnings.append(f'poule({pool_id}) : classement indisponible')
+                continue
+            if str(pool.get('id')) != pool_id:
+                raise ValueError(f'Poule FFBB invalide : {pool_id}')
+            for row in pool.get('classements') or []:
+                if not isinstance(row, dict):
+                    continue
+                engagement = row.get('idEngagement')
+                organisme = row.get('organisme')
+                if isinstance(engagement, dict) and engagement.get('id'):
+                    engagement_id = str(engagement['id'])
+                    if engagement.get('nom'):
+                        engagement_names.setdefault(engagement_id, engagement['nom'])
+                    if engagement.get('logo'):
+                        try:
+                            engagement_logos.setdefault(
+                                engagement_id, str(UUID(str(engagement['logo']))))
+                        except ValueError:
+                            pass
+                if isinstance(organisme, dict) and organisme.get('id'):
+                    organisme_id = str(organisme['id'])
+                    if organisme.get('nom'):
+                        organism_names.setdefault(organisme_id, organisme['nom'])
+                    if organisme.get('logo'):
+                        try:
+                            logos.setdefault(organisme_id, str(UUID(str(organisme['logo']))))
+                        except ValueError:
+                            pass
     # Certaines anciennes phases ne sont plus dans la collection engagements.
     # Leurs matchs conservent les identifiants de club, engagement et compétition.
     # Conserver ces matchs avec ces seules métadonnées vérifiables.
@@ -352,27 +626,32 @@ def import_calendar(client, config, read_pool=None):
             raise ValueError('Compétition de l’ancien engagement ambiguë')
         engagements.append(SimpleNamespace(id=missing_id, idOrganisme=club_id,
             idCompetition=related[0].competitionId, idPoule=related[0].idPoule, numeroEquipe=None))
-    # Éviter plusieurs lectures d'une même compétition pendant cet import.
-    # Ce cache en mémoire n'est jamais réutilisé par l'actualisation suivante.
-    competitions = {}
+    # Charger les compétitions par lots, pas une requête par équipe.
+    competition_ids = {str(e.idCompetition) for e in engagements if e.idCompetition is not None}
+    if read_competitions:
+        competitions = read_competitions(competition_ids, warnings)
+    else:
+        # Keep the injected SDK path for isolated tests and existing callers.
+        competitions = {}
+        for competition_id in sorted(competition_ids):
+            competitions[competition_id] = fetch_detail(
+                client.get_competition, int(competition_id), warnings, deep_rencontres_limit=0)
     teams = {}
     for engagement in engagements:
         if str(engagement.idOrganisme) != str(club_id):
             raise ValueError("Engagement d'un autre club")
         competition_id = engagement.idCompetition
-        if competition_id not in competitions:
-            competition = fetch_detail(client.get_competition, competition_id, warnings, deep_rencontres_limit=0)
-            if competition and (str(competition.id) != str(competition_id) or not competition.nom):
-                raise ValueError("Compétition FFBB invalide")
-            competitions[competition_id] = competition
-        competition = competitions[competition_id]
+        competition = competitions.get(str(competition_id))
+        if competition and (str(competition.id) != str(competition_id) or not competition.nom):
+            raise ValueError("Compétition FFBB invalide")
         if competition and str(competition.saison) not in season_ids:
             continue
         team_id = identifier(engagement.id)
         related = [m for m in raw_matches if club_side(m, club_id)[1] == team_id]
         if not competition and not related:
             raise ValueError('Saison de l’engagement invérifiable')
-        match_name = (related[0].nomEquipe1 if club_side(related[0], club_id)[0] else related[0].nomEquipe2) if related else club.nom
+        match_name = ((related[0].nomEquipe1 if club_side(related[0], club_id)[0] else related[0].nomEquipe2)
+                      if related else None) or engagement_names.get(team_id) or club.nom
         description = competition.nom if competition else None
         teams[team_id] = {
             'id': team_id, 'label': config.get('teamLabels', {}).get(team_id) or description or match_name,
@@ -390,25 +669,38 @@ def import_calendar(client, config, read_pool=None):
         if salle and str(salle.id) != str(salle_id):
             raise ValueError(f"Salle FFBB invalide : {salle_id}")
         salles[salle_id] = salle.libelle if salle else None
-    # Lire une fois le logo de chaque club rencontré, AST compris.
-    logos = fetch_logos(client, club, {i for m in raw_matches for i in (m.idOrganismeEquipe1, m.idOrganismeEquipe2)}, warnings)
+    # Lire les noms/logos des clubs par lots ; les noms complètent les matchs incomplets.
+    if not read_opponent_engagements:
+        organisme_ids = {i for m in raw_matches for i in (m.idOrganismeEquipe1, m.idOrganismeEquipe2)}
+        logos.update(fetch_logos(client, club, organisme_ids, warnings))
     matches = []
+    missing_name_fallbacks = 0
     for match in raw_matches:
         team_id = club_side(match, club_id)[1]
         if team_id not in teams:
             raise ValueError("Rencontre sans engagement actif")
         team = teams[team_id]
-        matches.append(normalize_match(match, team, club_id, salles.get(match.salle), logos))
+        previous = (previous_matches or {}).get(str(match.id), {})
+        if previous.get('atHome') != club_side(match, club_id)[0]:
+            previous = {}
+        home_known = (match.nomEquipe1 or engagement_names.get(str(match.idEngagementEquipe1))
+                      or organism_names.get(str(match.idOrganismeEquipe1)) or previous.get('home'))
+        away_known = (match.nomEquipe2 or engagement_names.get(str(match.idEngagementEquipe2))
+                      or organism_names.get(str(match.idOrganismeEquipe2)) or previous.get('away'))
+        if not home_known or not away_known:
+            missing_name_fallbacks += 1
+        matches.append(normalize_match(
+            match, team, club_id, salles.get(match.salle), logos, organism_names,
+            engagement_names, engagement_logos, previous))
         team['count'] += 1
+    if missing_name_fallbacks:
+        warnings.append(
+            f'Nom d’équipe absent des données FFBB pour {missing_name_fallbacks} rencontre(s) ; identifiant affiché en repli')
     # Classements affichés par les pages équipe ; une poule inaccessible est
     # marquée available=False sans bloquer les scores (voir read_pool).
     standings = []
     for pool_id in sorted({m['pouleId'] for m in matches if m['pouleId']}):
-        pool = read_pool(pool_id) if read_pool else None
-        if read_pool and pool is None:
-            warnings.append(f'poule({pool_id}) : classement indisponible')
-        if pool and str(pool.get('id')) != pool_id:
-            raise ValueError(f"Poule FFBB invalide : {pool_id}")
+        pool = pools.get(pool_id) if read_pool else None
         standings.append({'id': pool_id, 'name': pool.get('nom') if pool else None,
                           'available': pool is not None,
                           'rows': normalize_standings(pool.get('classements') or [], club_id) if pool else []})
@@ -440,7 +732,13 @@ def main():
     # Le client avertit pour des champs annexes que le calendrier n'utilise pas.
     logging.getLogger('ffbb_api_client_v2.utils.converter_utils').setLevel(logging.ERROR)
     data = run_stage('calendar', lambda: import_calendar(
-        client, config, pool_reader(session, tokens.api_token, config['baseUrl'])))
+        client, config, pool_reader(session, tokens.api_token, config['baseUrl']),
+        lambda ids, warnings: fetch_competitions(
+            session, tokens.api_token, config['baseUrl'], ids, warnings),
+        lambda ids: fetch_engagements(client, ids),
+        lambda ids, warnings: fetch_organism_names(
+            session, tokens.api_token, config['baseUrl'], ids, warnings),
+        load_previous_match_names()))
     print(json.dumps(data, ensure_ascii=False))
 
 

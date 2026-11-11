@@ -231,7 +231,7 @@ numériques pour conserver un format de jointure stable entre Python et JavaScri
 | `source`, `sourceType`, `api` | Provenance ; `sourceType` vaut `api` |
 | `client`, `clientVersion` | Client et version utilisés ; version aussi déclarée dans le code Python |
 | `seasonIds[]` | Identifiants des saisons actives retenues |
-| `warnings[]` | Métadonnées annexes refusées/absentes via HTTP 403/404 |
+| `warnings[]` | Métadonnées annexes refusées/absentes via HTTP 403/404/429 ou nom d'équipe de repli |
 | `teams[]` | Engagements normalisés |
 | `matches[]` | Rencontres triées par date, libellé d'équipe et identifiant |
 | `standings[]` | Classements des poules, affichés sur les pages équipe |
@@ -497,15 +497,20 @@ sont filtrés ; les erreurs bloquantes continuent de remonter.
    Tous ceux de la fiche club doivent être retrouvés dans la collection.
 5. Un engagement référencé seulement par des matchs peut être reconstitué depuis
    ces matchs si l'identifiant de compétition est unique et renseigné.
-6. Les compétitions sont résolues une fois par import. Le nom configuré dans
-   `teamLabels` est prioritaire. Sans métadonnée de compétition, le nom AST du
-   match sert de repli, et les champs inconnus restent `null`.
-7. Les salles sont résolues une fois ; `normalize_match` valide puis adapte chaque
-   rencontre. Les compteurs par engagement sont incrémentés.
-8. Les poules des rencontres alimentent les classements via `read_pool`
-   (`pool_reader` en production), en conservant un état indisponible quand une
-   poule ne peut pas être lue.
-9. L'enveloppe reçoit la date d'import et est sérialisée une seule fois sur stdout.
+6. Les compétitions sont récupérées par lots. Le nom configuré dans `teamLabels`
+   reste prioritaire ; sans métadonnée de compétition, le nom AST du match sert
+   de repli et les champs inconnus restent `null`.
+7. Les engagements récupérés par identifiants sont découpés en lots dont le
+   filtre reste sous la limite de 1 000 caractères du SDK. Les équipes et logos
+   adverses sont d'abord déduits des engagements et relations de poule ; les
+   organismes ne sont recherchés que pour les noms encore manquants. Le dernier
+   instantané local peut fournir le nom d'un match déjà connu. À défaut, le match
+   est conservé avec `Équipe non renseignée (FFBB <id>)` et un avertissement.
+8. Les poules des rencontres alimentent les classements via `pool_reader`, en
+   conservant un état indisponible quand une poule ne peut pas être lue.
+9. `normalize_match` valide puis adapte chaque rencontre, et incrémente les
+   compteurs par engagement. L'enveloppe reçoit la date d'import et est sérialisée
+   une seule fois sur stdout.
 
 ### 7.4 Validation des réponses et erreurs
 
@@ -521,13 +526,28 @@ prématurée de passer pour un import complet.
 | Engagement ancien seulement connu par ses rencontres | Reconstruction contrôlée depuis les identifiants du match |
 | Score joué négatif ou de type incorrect | Échec complet |
 | Score absent | `null`, sans score inventé |
-| HTTP 403/404 sur compétition, salle ou poule via `fetch_detail` | Avertissement et métadonnée vide |
+| HTTP 403/404/429 sur métadonnée annexe (compétition, organisme ou poule) | Avertissement et métadonnée vide ; matchs conservés |
+| Nom d'adversaire absent dans les relations FFBB | Recherche ciblée d'organisme, puis repli sur l'instantané local ; à défaut libellé FFBB explicite et avertissement |
 | Erreur sur les rencontres, saisons ou engagements | Échec complet |
 | HTTP 401, serveur, réseau ou timeout | Échec complet |
 
 Une réponse annexe vide (`None`) est traitée comme absente ; seules les exceptions
-HTTP 403/404 sont ajoutées explicitement à `warnings`. L'absence de warning n'est
+HTTP 403/404/429 sont ajoutées explicitement à `warnings`. L'absence de warning n'est
 donc pas une preuve que tous les champs annexes sont renseignés.
+
+### 7.4 bis Diagnostic FFBB en lecture seule
+
+Sous Windows, lancer
+`.\.venv\Scripts\python.exe .\scripts\diagnose_ffbb.py` pour exécuter la même
+construction complète du calendrier sans sérialiser le résultat dans les fichiers
+du site. Les événements `[FFBB]` distinguent l'étape (`tokens` ou
+`calendar`), les erreurs HTTP (`http_error`) et la fin de chaque étape. Un
+`calendar_summary` confirme que l'instantané a été construit et donne les nombres
+d'équipes, rencontres, classements et avertissements. Un statut 429 signale la
+limitation de débit FFBB ; si l'erreur concerne une métadonnée annexe, le calendrier
+peut rester exploitable avec un avertissement. Utiliser ensuite
+`node scripts/update-calendar.mjs` pour remplacer l'instantané local et régénérer
+les fichiers dérivés après un diagnostic concluant.
 
 ### 7.5 Dates, identités et règles de score
 
@@ -820,6 +840,8 @@ et sorties cohérentes, puis effectuer les vérifications et republier le lot.
 | Libellé générique AST | `warnings` et `description` | Compétition annexe inaccessible ; conserver le résultat et ajuster seulement un libellé vérifié |
 | Import vide, tronqué ou mauvaise saison | Message Python, saisons, pagination | Ne pas publier ; vérifier le service et les filtres |
 | `ModuleNotFoundError` | Python sélectionné et dépendances | Installer avec le même interpréteur ; vérifier `FFBB_PYTHON` |
+| `http_error` avec statut 429 pendant le diagnostic | Limitation de débit FFBB sur l'URL signalée | Les métadonnées annexes peuvent être laissées vides ; consulter `stage_failed` et `calendar_summary`, puis relancer l'import de production après un diagnostic complet |
+| `missing_match_team_name` ou équipe « non renseignée » | Noms absents des relations d'engagement/poule et de l'organisme | Vérifier les avertissements ; le libellé FFBB explicite préserve le match sans inventer le nom |
 | Fuseau Paris introuvable sous Windows | Installation de `tzdata` | Réinstaller `requirements-ffbb.in` dans `.venv` |
 | `Emplacement ... manquant` | Repère HTML attendu par l'exporteur | Restaurer le repère, puis régénérer |
 | Carte partenaire vide ou erreur | JSON, existence du logo, liens actifs HTTPS | Corriger le JSON, exporter puis recharger ; en HTTP utiliser Réessayer |
