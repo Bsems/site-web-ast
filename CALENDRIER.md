@@ -21,6 +21,9 @@ Les métadonnées annexes supprimées, non publiées ou limitées par l'API (HTT
 Elles restent vides et signalées dans `warnings` ; les classements concernés
 portent `available: false`. Les erreurs sur les données essentielles (saisons,
 rencontres ou engagements) bloquent l'import.
+Si seule la fiche détaillée du club répond 403/429, l'import continue avec l'ID et
+le code du club configurés, mais exige toujours une saison active et des rencontres
+complètes correspondant à cet ID.
 Les autres erreurs, notamment réseau, authentification 401 et serveur, bloquent l’import.
 
 Toutes les compétitions retournées pour le club sont incluses, y compris les

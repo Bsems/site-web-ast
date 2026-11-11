@@ -118,6 +118,25 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'incomplet'):
             import_calendar(api, CONFIG)
 
+    def test_forbidden_club_detail_uses_configured_id_and_keeps_validation(self):
+        api = client()
+        api.get_organisme.side_effect = FFBBAuthError(status_code=403)
+        data = import_calendar(
+            api, CONFIG, read_pool=lambda pool_id: None,
+            read_competitions=lambda ids, warnings: {
+                '50': Obj(id='50', nom='Nationale féminine 2', saison=1037)},
+            read_opponent_engagements=lambda ids: [],
+            read_organism_names=lambda ids, warnings: {},
+        )
+        self.assertEqual(data['matches'][0]['awayScore'], 20)
+        self.assertIn('HTTP 403', data['warnings'][0])
+        self.assertEqual(api.list_all_rencontres.call_args.kwargs['filter_criteria'],
+                         json.dumps({'_and': [
+                             {'saison': {'_in': ['1037']}},
+                             {'_or': [{'idOrganismeEquipe1': {'_eq': 12343}},
+                                      {'idOrganismeEquipe2': {'_eq': 12343}}]},
+                         ]}))
+
     def test_old_engagement_missing_from_collection_keeps_match(self):
         api = client()
         api.list_all_engagements.return_value = []

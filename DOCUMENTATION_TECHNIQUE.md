@@ -488,7 +488,9 @@ sont filtrés ; les erreurs bloquantes continuent de remonter.
 
 ### 7.3 Construction de l'instantané
 
-1. `get_organisme` vérifie identifiant et code du club.
+1. `get_organisme` vérifie identifiant et code du club. Si cette fiche seule répond
+   403/429, l'ID et le code configurés remplacent ses métadonnées manquantes ;
+   les contrôles de saison, pagination, rencontres et engagements restent requis.
 2. `get_saisons` fournit les saisons actives ; leur absence bloque l'import.
 3. `list_all_rencontres` filtre domicile **ou** extérieur et saison active, avec
    pages de 100, tri `id` et limite de 10 000. Une liste vide ou atteignant cette
@@ -527,6 +529,7 @@ prématurée de passer pour un import complet.
 | Score joué négatif ou de type incorrect | Échec complet |
 | Score absent | `null`, sans score inventé |
 | HTTP 403/404/429 sur métadonnée annexe (compétition, organisme ou poule) | Avertissement et métadonnée vide ; matchs conservés |
+| HTTP 403/429 sur la fiche du club | Avertissement ; repli sur l'ID et le code configurés, puis contrôles normaux des saisons et rencontres |
 | Nom d'adversaire absent dans les relations FFBB | Recherche ciblée d'organisme, puis repli sur l'instantané local ; à défaut libellé FFBB explicite et avertissement |
 | Erreur sur les rencontres, saisons ou engagements | Échec complet |
 | HTTP 401, serveur, réseau ou timeout | Échec complet |

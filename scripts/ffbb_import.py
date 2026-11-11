@@ -504,7 +504,18 @@ def import_calendar(client, config, read_pool=None, read_competitions=None,
     """
     warnings = []
     club_id = config['club']['id']
-    club = client.get_organisme(club_id)
+    try:
+        club = client.get_organisme(club_id)
+    except FFBBApiError as error:
+        # BunnyCDN can refuse the single-item club route while Directus list
+        # endpoints remain readable. The configured ID still scopes all queries;
+        # the season and match validations below remain mandatory.
+        if error.status_code not in (403, 429):
+            raise
+        warnings.append(
+            f'get_organisme({club_id}) : fiche indisponible (HTTP {error.status_code})')
+        club = SimpleNamespace(id=club_id, code=config['club']['code'],
+                               engagements=[], nom=None)
     if not club or str(club.id) != str(club_id) or club.code != config['club']['code']:
         raise ValueError("Club FFBB incorrect")
     seasons = client.get_saisons()
